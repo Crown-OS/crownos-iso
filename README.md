@@ -88,7 +88,7 @@ deliberate for a rescue image and **inappropriate for an installed desktop**:
 - `sshd` with `PermitRootLogin yes` and `PasswordAuthentication yes`
 
 These must change before the profile becomes an installable CrownOS image. See
-[SECURITY.md](https://github.com/Crown-OS/crownos-documentations/blob/main/SECURITY.md).
+[SECURITY.md](https://github.com/Crown-OS/.github/blob/main/SECURITY.md).
 
 ## What making this a CrownOS ISO involves
 
@@ -130,6 +130,6 @@ mirrors.
 ## Contributing
 
 See the organization-wide
-[contribution guide](https://github.com/Crown-OS/crownos-documentations/blob/main/CONTRIBUTING.md).
+[contribution guide](https://github.com/Crown-OS/crownOs/blob/main/CONTRIBUTING.md).
 Default branch here is **`main`**. CrownOS-authored shell should pass
 `shellcheck`.
