@@ -1,0 +1,8 @@
+# mkarchiso scratch and output. Both are gigabytes of squashfs; neither belongs
+# in git. `build.sh` writes them here by default so a build never escapes the
+# repository, which is exactly why they have to be ignored.
+/work/
+/out/
+*.iso
+*.iso.sha256
+*.iso.sig
