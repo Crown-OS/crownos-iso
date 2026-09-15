@@ -14,7 +14,11 @@
 
 set -euo pipefail
 
-readonly PROFILE_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# Assigned before `readonly`, not with it: in `readonly X="$(cmd)"` the exit
+# status belongs to readonly, not to cmd, so a failing cd would pass silently
+# even under `set -e`.
+PROFILE_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+readonly PROFILE_DIR
 readonly IMAGE="${CROWNOS_ISO_IMAGE:-docker.io/library/archlinux:latest}"
 readonly MIN_FREE_GB=12
 
@@ -65,6 +69,10 @@ check_space() {
 report() {
   local rt
   echo "profile:        $PROFILE_DIR"
+  # /etc/os-release exists only on the host at run time, so there is no file
+  # here to analyse. The sourcing happens inside a command substitution, so the
+  # variables it sets cannot leak into this script.
+  # shellcheck source=/dev/null
   echo "host distro:    $( [[ -r /etc/os-release ]] && . /etc/os-release && echo "${PRETTY_NAME:-$ID}" || echo unknown )"
   echo "mkarchiso:      $(have mkarchiso && command -v mkarchiso || echo 'not installed')"
   echo "pacman:         $(have pacman && command -v pacman || echo 'not installed')"
