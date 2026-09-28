@@ -1,0 +1,17 @@
+dbus-user-session
+pipewire
+wireplumber
+pipewire-pulse
+bluez
+network-manager
+xdg-desktop-portal
+xdg-desktop-portal-gtk
+xdg-utils
+kitty
+fonts-inter
+libwayland-client0
+libxkbcommon0
+libvulkan1
+libegl1
+libgl1-mesa-dri
+mesa-vulkan-drivers

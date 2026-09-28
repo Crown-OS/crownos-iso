@@ -1,0 +1,11 @@
+(
+    startup: [
+        "crownpaper",
+        "crownbar",
+        "crowndock",
+        "crownos-home",
+        "crownotify",
+        "crownos-clipboard",
+        "crownpad",
+    ],
+)

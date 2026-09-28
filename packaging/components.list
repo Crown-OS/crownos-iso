@@ -1,0 +1,20 @@
+# One package per line: name|repo|cargo package|contents|summary
+#
+# repo is a directory next to crownos-iso. cargo package is empty unless the
+# repo is a workspace. Each contents entry is one of:
+#   bin:<built binary>:<installed path>
+#   file:<path inside repo>:<installed path>    (.in files get @libexecdir@ = /usr/lib)
+#   link:<target>:<installed path>
+crownpositor|crownpositor|compositor|bin:compositor:/usr/bin/crownpositor|The CrownOS Wayland compositor
+crownbar|crownbar||bin:crownbar:/usr/bin/crownbar|The CrownOS status bar
+crownotify|crownotify||bin:crownotify:/usr/bin/crownotify|The CrownOS notification daemon
+crownpaper|crownpaper||bin:crownpaper:/usr/bin/crownpaper|The CrownOS wallpaper daemon
+crownpad|crownpad||bin:crownpad:/usr/bin/crownpad bin:crownpadctl:/usr/bin/crownpadctl|The CrownOS app launcher
+crowndock|crowndock||bin:crowndock:/usr/bin/crowndock|The CrownOS dock
+crownos-home|crownos-home||bin:crownos-home:/usr/bin/crownos-home|The CrownOS desktop icon layer
+crownos-clipboard|crownos-clipboard||bin:crownos-clipboard:/usr/bin/crownos-clipboard|The CrownOS clipboard manager
+crownos-settings|crownos-settings||bin:crownsettings:/usr/bin/crownsettings link:/usr/bin/crownsettings:/usr/bin/crownos-settings|CrownOS Settings
+crowndictator|crowndictator||bin:crowndictator:/usr/bin/crowndictator|Push-to-talk voice dictation for Wayland
+crownconnect|crownconnect-linux||bin:crownconnect-linux:/usr/bin/crownconnect-linux bin:crownconnect-viewer:/usr/bin/crownconnect-viewer|CrownOS cross-device hub
+fileshare|fileshare-linux|fileshare-linux|bin:fileshare-linux:/usr/bin/fileshare-linux|CrownOS nearby file sharing
+xdg-desktop-portal-crownos|xdg-desktop-portal-crownos||bin:xdg-desktop-portal-crownos:/usr/lib/xdg-desktop-portal-crownos bin:crownos-portal-dialog:/usr/lib/crownos-portal-dialog file:data/crownos.portal:/usr/share/xdg-desktop-portal/portals/crownos.portal file:data/crownos-portals.conf:/usr/share/xdg-desktop-portal/crownos-portals.conf file:data/org.freedesktop.impl.portal.desktop.crownos.service.in:/usr/share/dbus-1/services/org.freedesktop.impl.portal.desktop.crownos.service file:data/xdg-desktop-portal-crownos.service.in:/usr/lib/systemd/user/xdg-desktop-portal-crownos.service|The CrownOS xdg-desktop-portal backend

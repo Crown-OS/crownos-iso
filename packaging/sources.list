@@ -1,0 +1,23 @@
+# Repositories the build needs next to crownos-iso: directory, GitHub repository.
+crownos-installer Crown-OS/crownos-installer
+crownpositor Crown-OS/crownpositor
+crownbar Crown-OS/crownbar
+crownotify Crown-OS/crownotify
+crownpaper Crown-OS/crownpaper
+crownpad Crown-OS/crownpad
+crowndock Crown-OS/crowndock
+crownos-home Crown-OS/crownos-home
+crownos-clipboard Crown-OS/crownos-clipboard
+crownos-settings Crown-OS/crownos-settings
+crowndictator Crown-OS/crowndictator
+crownconnect-linux Crown-OS/crowncrate-linux
+fileshare-linux Crown-OS/fileshare-linux
+xdg-desktop-portal-crownos Crown-OS/xdg-desktop-portal-crownos
+crownshell Crown-OS/crownshell
+crownuikit Crown-OS/crownuikit
+crownos-config Crown-OS/crownos-config
+crownos-ipc Crown-OS/crownos-ipc
+crownos-protocols Crown-OS/crownos-protocols
+llts-protocol Crown-OS/lls-protocol
+ffsp-protocol Crown-OS/ffsp-protocol
+vendor Crown-OS/vendor

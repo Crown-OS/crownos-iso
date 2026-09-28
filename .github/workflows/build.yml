@@ -1,0 +1,218 @@
+# Packages for every base, the signed repository on GitHub Pages, and the ISO.
+#
+# Pull requests build and test everything but publish nothing. Pushes to main,
+# the nightly run and component repositories' `component-updated` dispatches
+# also sign and deploy the repository and build the ISO. A `v*` tag does all of
+# that and attaches the ISO to a GitHub release.
+#
+# Secrets:
+#   CROWNOS_SIGNING_KEY_ASC   armored secret key for packages@crownos.org, without a passphrase
+#   CROWNOS_SOURCES_TOKEN     read access to the component repositories, if any are private
+
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+  repository_dispatch:
+    types: [component-updated]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CROWNOS_CONTAINER: docker
+  CROWNOS_SOURCES_TOKEN: ${{ secrets.CROWNOS_SOURCES_TOKEN }}
+  RUST_VERSION: 1.97.1
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Shell scripts
+        run: shellcheck build.sh packaging/scripts/*.sh packaging/crownos-desktop/crownos-session
+      - uses: cachix/install-nix-action@v31
+      - name: Nix expressions
+        run: for file in packaging/nix/*.nix; do nix-instantiate --parse "$file" >/dev/null; done
+      # One version for the whole run, so every package and repository agrees.
+      # The run number keeps two builds on one day ordered.
+      - id: version
+        run: echo "version=$(date -u +%Y.%m.%d).${{ github.run_number }}" >>"$GITHUB_OUTPUT"
+
+  installer:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: crownos-iso
+      - run: crownos-iso/packaging/scripts/fetch-sources.sh
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pkg-config libwayland-dev libxkbcommon-dev libfontconfig-dev
+          rustup toolchain install "$RUST_VERSION" --profile minimal && rustup default "$RUST_VERSION"
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            crownos-installer/target
+          key: installer-${{ hashFiles('crownos-installer/Cargo.lock') }}
+      - run: crownos-iso/build.sh installer
+      - uses: actions/upload-artifact@v7
+        with:
+          name: installer
+          path: crownos-iso/live/airootfs/usr/bin/crownos-installer
+          retention-days: 7
+
+  packages:
+    needs: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [arch, debian, ubuntu, fedora]
+    env:
+      CROWNOS_VERSION: ${{ needs.lint.outputs.version }}
+      CROWNOS_CARGO_CACHE: ${{ github.workspace }}/cargo-cache
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          docker image prune --all --force
+          df -h /
+      - uses: actions/checkout@v7
+        with:
+          path: crownos-iso
+      - run: crownos-iso/packaging/scripts/fetch-sources.sh
+      # The registry and git checkouts are the same for every base, so the
+      # four jobs share one cache.
+      - uses: actions/cache@v6
+        with:
+          path: cargo-cache
+          key: cargo-${{ hashFiles('*/Cargo.lock') }}
+          restore-keys: cargo-
+      - run: crownos-iso/build.sh packages ${{ matrix.distro }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: packages-${{ matrix.distro }}
+          path: |
+            crownos-iso/build/packages/${{ matrix.distro }}
+            crownos-iso/build/sources.txt
+          retention-days: 7
+
+  repo:
+    needs: packages
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: crownos-iso
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: packages-*
+          path: artifacts
+      - name: Collect packages
+        run: |
+          mkdir -p crownos-iso/build/packages
+          for artifact in artifacts/packages-*; do
+            distro="${artifact#artifacts/packages-}"
+            mv "$artifact/packages/$distro" crownos-iso/build/packages/
+            cp "$artifact/sources.txt" crownos-iso/build/sources.txt
+          done
+      - name: Import the signing key
+        env:
+          CROWNOS_SIGNING_KEY_ASC: ${{ secrets.CROWNOS_SIGNING_KEY_ASC }}
+        run: |
+          [ -n "$CROWNOS_SIGNING_KEY_ASC" ] || { echo "::error::CROWNOS_SIGNING_KEY_ASC is not set"; exit 1; }
+          gpg --batch --import <<<"$CROWNOS_SIGNING_KEY_ASC"
+      - run: crownos-iso/build.sh repo
+      - run: cp crownos-iso/build/sources.txt crownos-iso/build/repo/
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: crownos-iso/build/repo
+      - uses: actions/upload-artifact@v7
+        with:
+          name: repo-key
+          path: crownos-iso/build/repo/crownos-archive-keyring.asc
+          retention-days: 7
+
+  deploy-repo:
+    needs: repo
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+  iso:
+    needs: [installer, repo]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          docker image prune --all --force
+      - uses: actions/checkout@v7
+        with:
+          path: crownos-iso
+      - uses: actions/download-artifact@v8
+        with:
+          name: installer
+          path: crownos-iso/live/airootfs/usr/bin
+      - uses: actions/download-artifact@v8
+        with:
+          name: repo-key
+          path: crownos-iso/build/repo
+      # mkarchiso needs root, mounts and an Arch host: a privileged Arch
+      # container is all three.
+      - name: Build the ISO
+        run: |
+          chmod 755 crownos-iso/live/airootfs/usr/bin/crownos-installer
+          docker run --rm --privileged -v "$PWD/crownos-iso:/crownos-iso" -w /crownos-iso \
+            docker.io/archlinux/archlinux:latest \
+            bash -c 'pacman -Syu --noconfirm --needed archiso && ./build.sh iso'
+          sudo chown -R "$(id -u):$(id -g)" crownos-iso/out
+          cd crownos-iso/out
+          for iso in *.iso; do sha256sum "$iso" >"$iso.sha256"; done
+      - uses: actions/upload-artifact@v7
+        with:
+          name: iso
+          path: crownos-iso/out/*
+          compression-level: 0
+          retention-days: 7
+
+  release:
+    needs: [iso, deploy-repo]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: iso
+          path: iso
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" iso/* --repo "$GITHUB_REPOSITORY" --generate-notes --verify-tag

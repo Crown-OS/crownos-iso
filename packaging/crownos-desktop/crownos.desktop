@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=CrownOS
+Comment=The CrownOS desktop
+Exec=crownos-session
+TryExec=crownos-session
+Type=Application
+DesktopNames=CrownOS

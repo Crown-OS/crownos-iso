@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
+#
+# The CrownOS session entry point, run by the login shell on tty1 (see
+# crownos-session.sh) or by a display manager through crownos.desktop.
+#
+# It sets XDG_CURRENT_DESKTOP before anything starts so portals and toolkits
+# pick the CrownOS backends, gives the session a bus when there is none, and
+# seeds the compositor's startup list on first login: crownos-config writes
+# an empty list when the file is missing, which would start nothing.
+
+set -euo pipefail
+
+export XDG_CURRENT_DESKTOP=CrownOS
+export XDG_SESSION_DESKTOP=crownos
+export XDG_SESSION_TYPE=wayland
+export MOZ_ENABLE_WAYLAND=1
+export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-wayland;xcb}"
+export SDL_VIDEODRIVER="${SDL_VIDEODRIVER:-wayland}"
+export _JAVA_AWT_WM_NONREPARENTING=1
+
+config_dir="${CROWN_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/crownos}"
+default_compositor="$(dirname "$(readlink -f "$0")")/../share/crownos/compositor.ron"
+if [ ! -e "$config_dir/compositor.ron" ] && [ -r "$default_compositor" ]; then
+  install -Dm644 "$default_compositor" "$config_dir/compositor.ron"
+fi
+
+if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] || ! command -v dbus-run-session >/dev/null 2>&1; then
+  exec crownpositor "$@"
+fi
+exec dbus-run-session -- crownpositor "$@"

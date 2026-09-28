@@ -1,0 +1,16 @@
+dbus
+pipewire
+wireplumber
+pipewire-pulseaudio
+bluez
+NetworkManager
+xdg-desktop-portal
+xdg-desktop-portal-gtk
+xdg-utils
+kitty
+rsms-inter-fonts
+libwayland-client
+libxkbcommon
+vulkan-loader
+mesa-dri-drivers
+mesa-vulkan-drivers

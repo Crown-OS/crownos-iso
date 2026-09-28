@@ -1,0 +1,17 @@
+# Build artifacts from build.sh / mkarchiso.
+#
+# `live/airootfs/usr/bin/crownos-installer` is a ~28 MB binary compiled from the
+# sibling crownos-installer repo and staged here by `build.sh installer`. It is
+# an output, not a source: committing it would put a binary in this repo that
+# silently goes stale against the code it was built from, and reviewers would
+# have no way to tell. Rebuild it instead. The repository key is staged from
+# build/repo by `build.sh iso` for the same reason.
+live/airootfs/usr/bin/crownos-installer
+live/airootfs/usr/share/crownos/crownos-archive-keyring.asc
+
+# Packages, cargo targets and the signed repository (build.sh packages / repo).
+build/
+
+# mkarchiso's scratch and output directories.
+work/
+out/

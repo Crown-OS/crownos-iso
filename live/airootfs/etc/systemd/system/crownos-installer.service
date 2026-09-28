@@ -1,0 +1,65 @@
+[Unit]
+Description=CrownOS graphical installer kiosk (cage)
+Documentation=https://github.com/cage-kiosk/cage/wiki/Starting-Cage-on-boot-with-systemd
+
+# The kiosk owns tty1. getty@tty1 (which keeps its root-autologin drop-in) is
+# the diagnostic fallback, not a peer: Conflicts= stops it whenever this unit
+# starts, and After= makes the takeover deterministic instead of a boot race.
+Conflicts=getty@tty1.service
+After=getty@tty1.service
+
+# Device access is brokered by the seatd daemon; see LIBSEAT_BACKEND below.
+Wants=seatd.service
+After=seatd.service
+After=systemd-user-sessions.service
+
+ConditionPathExists=/dev/tty0
+
+# Crash policy: restart quickly on failure (Restart= below). If the installer
+# keeps dying, stop trying after 5 failures in 60s and hand the VT back to the
+# root-autologin getty so the user gets a shell (and journalctl) instead of a
+# dead black screen. OnSuccess= covers an installer that exits cleanly without
+# having rebooted the machine — same fallback.
+StartLimitIntervalSec=60
+StartLimitBurst=5
+OnFailure=getty@tty1.service
+OnSuccess=getty@tty1.service
+
+[Service]
+Type=simple
+# -s: allow VT switching, so Ctrl+Alt+F2 still reaches a console for
+# debugging while the installer runs.
+ExecStart=/usr/bin/cage -s -- /usr/bin/crownos-installer
+Restart=on-failure
+RestartSec=1
+
+# Pin libseat to the seatd daemon. The live environment runs everything as
+# root, so no PAM/logind session is opened for this unit; without the pin,
+# libseat could fall back to the logind backend and then fail because no
+# session exists. The builtin backend (an in-process seatd) would also work
+# as root, but a standalone seatd survives compositor crashes, restarts
+# independently, and logs on its own — the more robust choice for a kiosk
+# that auto-restarts.
+Environment=LIBSEAT_BACKEND=seatd
+
+# Wayland needs XDG_RUNTIME_DIR; with no PAM session there is no /run/user/0,
+# so give the kiosk a private runtime dir (recreated on every restart).
+RuntimeDirectory=crownos
+RuntimeDirectoryMode=0700
+Environment=XDG_RUNTIME_DIR=%t/crownos
+
+# The compositor must own the VT: hook the unit's stdin to tty1 and fail if
+# the tty cannot be acquired, reset/hangup it on stop so the fallback getty
+# gets a sane terminal.
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+StandardInput=tty-fail
+StandardOutput=journal
+StandardError=journal
+UtmpIdentifier=tty1
+UtmpMode=user
+
+[Install]
+WantedBy=multi-user.target
