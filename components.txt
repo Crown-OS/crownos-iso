@@ -1,5 +1,4 @@
 Crown-OS/crownos-installer
-Crown-OS/crownshell
 Crown-OS/crownpositor
 Crown-OS/crownbar
 Crown-OS/crowndock
@@ -7,3 +6,6 @@ Crown-OS/crownotify
 Crown-OS/crownpaper
 Crown-OS/crownos-settings
 Crown-OS/crownos-clipboard
+Crown-OS/crowndictator
+Crown-OS/crownconnect-linux
+Crown-OS/crownlauncher
