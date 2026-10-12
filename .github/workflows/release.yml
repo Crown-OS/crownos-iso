@@ -1,0 +1,54 @@
+# Builds the ISO from the latest release of every repository in components.txt
+# and publishes it as a GitHub release for the pushed tag.
+#
+# Secrets:
+#   CROWNOS_SOURCES_TOKEN   read access to component releases, if any repository is private
+# Variables:
+#   CROWNOS_REPO_KEY        armored public key of the CrownOS package repository
+
+name: Release
+
+on:
+  push:
+    tags: ['*']
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  iso:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+      options: --privileged
+    steps:
+      - name: Toolchain
+        run: pacman -Syu --noconfirm --needed archiso rust gcc github-cli git sudo
+      - uses: actions/checkout@v7
+      - name: Build user
+        run: |
+          useradd --create-home builder
+          echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
+          chown -R builder "$GITHUB_WORKSPACE"
+      - name: Build ISO
+        env:
+          GH_TOKEN: ${{ secrets.CROWNOS_SOURCES_TOKEN || github.token }}
+          REPO_KEY: ${{ vars.CROWNOS_REPO_KEY }}
+        run: |
+          key_args=()
+          if [ -n "$REPO_KEY" ]; then
+            printf '%s\n' "$REPO_KEY" > /tmp/crownos-archive-keyring.asc
+            key_args=(--repo-key /tmp/crownos-archive-keyring.asc)
+          fi
+          sudo -u builder -H --preserve-env=GH_TOKEN cargo run --release --locked -- build "${key_args[@]}"
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: out
+        run: |
+          sha256sum -- *.iso > SHA256SUMS
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes -- *.iso SHA256SUMS
