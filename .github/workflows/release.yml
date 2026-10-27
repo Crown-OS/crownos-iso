@@ -1,16 +1,23 @@
-# Builds the ISO from the latest release of every repository in components.txt
-# and publishes it as a GitHub release for the pushed tag.
+# Builds the ISO from the latest release of every repository in components.txt,
+# installs it unattended in QEMU with no network and boots the result. A pushed
+# tag then signs it and publishes it as that tag's GitHub release; a manual run
+# or a component's update only builds and tests.
 #
 # Secrets:
-#   CROWNOS_SOURCES_TOKEN   read access to component releases, if any repository is private
+#   CROWNOS_SOURCES_TOKEN          read access to component releases, if any repository is private
+#   CROWNOS_ISO_SIGNING_KEY        armored private key that signs the ISO
+#   CROWNOS_ISO_SIGNING_PASSPHRASE its passphrase, if it has one
 # Variables:
-#   CROWNOS_REPO_KEY        armored public key of the CrownOS package repository
+#   CROWNOS_REPO_KEY               armored public key of the CrownOS package repository
 
 name: Release
 
 on:
   push:
     tags: ['*']
+  workflow_dispatch:
+  repository_dispatch:
+    types: [component-updated]
 
 permissions:
   contents: write
@@ -20,14 +27,26 @@ defaults:
     shell: bash
 
 jobs:
-  iso:
+  build:
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
-      options: --privileged
+      # The host's preinstalled SDKs, mounted so they can be deleted: the build
+      # needs the space for the image, its work tree and the offline mirror.
+      options: >-
+        --privileged
+        -v /usr/share/dotnet:/host/dotnet
+        -v /usr/local/lib/android:/host/android
+        -v /opt/hostedtoolcache:/host/toolcache
     steps:
+      - name: Free disk space
+        run: rm -rf /host/dotnet/* /host/android/* /host/toolcache/*
       - name: Toolchain
-        run: pacman -Syu --noconfirm --needed archiso rust gcc github-cli git sudo
+        run: pacman -Syu --noconfirm --needed archiso base-devel github-cli git sudo
+      - name: Trust CachyOS packages
+        run: |
+          pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com
+          pacman-key --lsign-key F3B607488DB35A47
       - uses: actions/checkout@v7
       - name: Build user
         run: |
@@ -44,11 +63,67 @@ jobs:
             printf '%s\n' "$REPO_KEY" > /tmp/crownos-archive-keyring.asc
             key_args=(--repo-key /tmp/crownos-archive-keyring.asc)
           fi
-          sudo -u builder -H --preserve-env=GH_TOKEN cargo run --release --locked -- build "${key_args[@]}"
+          sudo -u builder -H --preserve-env=GH_TOKEN scripts/build.sh "${key_args[@]}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iso
+          path: out/*.iso
+          compression-level: 0
+          retention-days: 7
+
+  install-test:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+      options: --device /dev/kvm
+    steps:
+      - name: Toolchain
+        run: pacman -Syu --noconfirm --needed qemu-base edk2-ovmf dosfstools libarchive
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v4
+        with:
+          name: iso
+          path: out
+      - name: Install and boot
+        run: scripts/install-test.sh out/*.iso
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-test-logs
+          path: target/install-test/*.log
+
+  publish:
+    needs: install-test
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v4
+        with:
+          name: iso
+          path: out
+      - name: Sign
+        env:
+          SIGNING_KEY: ${{ secrets.CROWNOS_ISO_SIGNING_KEY }}
+          CROWNOS_SIGNING_PASSPHRASE: ${{ secrets.CROWNOS_ISO_SIGNING_PASSPHRASE }}
+        run: |
+          if [ -z "$SIGNING_KEY" ]; then
+            echo "::error::CROWNOS_ISO_SIGNING_KEY is not set; releases are only published signed."
+            exit 1
+          fi
+          export GNUPGHOME=$(mktemp -d)
+          printf '%s\n' "$SIGNING_KEY" | gpg --batch --import
+          export CROWNOS_SIGNING_KEY=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ { print $10; exit }')
+          echo "SIGNING_FINGERPRINT=$CROWNOS_SIGNING_KEY" >> "$GITHUB_ENV"
+          for iso in out/*.iso; do scripts/sign.sh "$iso"; done
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         working-directory: out
         run: |
           sha256sum -- *.iso > SHA256SUMS
-          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes -- *.iso SHA256SUMS
+          notes=$(printf 'Signed with the CrownOS ISO key `%s`. To verify:\n\n```sh\ngpg --recv-keys %s\ngpg --verify %s.sig %s\n```\n' \
+            "$SIGNING_FINGERPRINT" "$SIGNING_FINGERPRINT" "$(ls *.iso)" "$(ls *.iso)")
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --notes "$notes" --generate-notes -- *.iso *.sig *.sha256 SHA256SUMS

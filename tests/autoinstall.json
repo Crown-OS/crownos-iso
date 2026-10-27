@@ -1,0 +1,7 @@
+{
+  "username": "crown",
+  "password": "crownos",
+  "hostname": "crownos-test",
+  "filesystem": "btrfs",
+  "kernel_args": "console=ttyS0 systemd.show_status=1"
+}

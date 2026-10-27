@@ -1,4 +1,6 @@
 /target
 /out
 /profile/airootfs/usr/bin/crownos-installer
-/profile/airootfs/usr/share/crownos/
+/profile/airootfs/usr/share/crownos/crownos-archive-keyring.asc
+/profile/airootfs/var/cache/crownos/
+/profile/airootfs/usr/share/icons/
