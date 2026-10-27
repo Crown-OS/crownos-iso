@@ -1,0 +1,15 @@
+# Every package crownos-installer may pacstrap. The build bundles these and
+# their dependencies as the live image's offline repository.
+archlinux-keyring
+base
+btrfs-progs
+crownos-desktop
+dosfstools
+e2fsprogs
+efibootmgr
+linux
+linux-firmware
+mkinitcpio
+nano
+networkmanager
+sudo

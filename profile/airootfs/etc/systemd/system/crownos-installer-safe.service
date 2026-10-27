@@ -1,0 +1,23 @@
+# The installer alone in a software-rendered kiosk, for machines where the live
+# desktop cannot start.
+
+[Unit]
+Description=CrownOS Installer (safe graphics)
+After=systemd-user-sessions.service systemd-logind.service
+Conflicts=getty@tty1.service crownos-live.service
+
+[Service]
+ExecStart=/usr/bin/cage -- /usr/bin/crownos-installer
+Environment=WLR_RENDERER=pixman
+Environment=LIBSEAT_BACKEND=logind
+PAMName=login
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+StandardInput=tty-fail
+StandardOutput=journal
+StandardError=journal
+UtmpIdentifier=tty1
+Restart=always
+RestartSec=1

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Install CrownOS
+Comment=Set up CrownOS on this device
+Exec=crownos-install
+Terminal=false
+Categories=System;

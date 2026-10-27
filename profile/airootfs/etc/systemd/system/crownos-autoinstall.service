@@ -1,0 +1,19 @@
+# Installs without a window when QEMU hands in an autoinstall config through
+# fw_cfg, for scripts/install-test.sh, then powers off either way. Real
+# hardware has no fw_cfg, so this never starts there.
+
+[Unit]
+Description=CrownOS unattended install
+ConditionPathExists=/sys/firmware/qemu_fw_cfg/by_name/opt/org.crownos/autoinstall/raw
+After=systemd-udev-settle.service local-fs.target
+Wants=systemd-udev-settle.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/crownos-installer --autoinstall /sys/firmware/qemu_fw_cfg/by_name/opt/org.crownos/autoinstall/raw
+ExecStopPost=/usr/bin/systemctl --no-block poweroff
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target

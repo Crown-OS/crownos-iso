@@ -1,0 +1,7 @@
+#!/bin/sh
+# Opens the installer as root inside the live desktop's Wayland session, once,
+# with its output in the journal.
+exec systemd-cat --identifier=crownos-installer \
+    flock --nonblock "$XDG_RUNTIME_DIR/crownos-installer.lock" \
+    sudo --preserve-env=WAYLAND_DISPLAY,XDG_RUNTIME_DIR,DBUS_SESSION_BUS_ADDRESS,CROWNOS_LIVE_SESSION \
+    /usr/bin/crownos-installer "$@"

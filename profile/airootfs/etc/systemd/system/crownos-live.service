@@ -1,0 +1,39 @@
+# The live desktop on tty1, with the installer open over it. If the compositor
+# keeps failing, for example on a GPU it cannot drive, the installer falls back
+# to a software-rendered kiosk.
+
+[Unit]
+Description=CrownOS live desktop
+Wants=NetworkManager.service
+After=NetworkManager.service systemd-user-sessions.service systemd-logind.service
+Conflicts=getty@tty1.service
+ConditionPathExists=!/sys/firmware/qemu_fw_cfg/by_name/opt/org.crownos/autoinstall/raw
+OnFailure=crownos-installer-safe.service
+StartLimitIntervalSec=30
+StartLimitBurst=3
+
+[Service]
+User=crownos-live
+PAMName=login
+WorkingDirectory=~
+ExecStart=/usr/bin/crownpositor
+Environment=XDG_SESSION_TYPE=wayland
+Environment=XDG_ICON_THEME=WhiteSur-dark
+Environment=CROWN_BACKEND=kms
+Environment=CROWN_CONFIG_DIR=/usr/share/crownos/live
+Environment=CROWNOS_LIVE_SESSION=1
+Environment=LIBSEAT_BACKEND=logind
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+StandardInput=tty-fail
+StandardOutput=journal
+StandardError=journal
+UtmpIdentifier=tty1
+UtmpMode=user
+Restart=on-failure
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

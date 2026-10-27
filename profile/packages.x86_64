@@ -7,8 +7,9 @@ dosfstools
 e2fsprogs
 efibootmgr
 gptfdisk
+gsettings-desktop-schemas
 intel-ucode
-linux
+linux-cachyos
 linux-firmware
 mesa
 mkinitcpio
@@ -16,7 +17,8 @@ mkinitcpio-archiso
 networkmanager
 ntfs-3g
 parted
-seatd
+sudo
+ttf-dejavu
 vulkan-icd-loader
 vulkan-intel
 vulkan-nouveau

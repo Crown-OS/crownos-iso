@@ -1,0 +1,15 @@
+// The live image's desktop. crownos-live.service points CROWN_CONFIG_DIR here,
+// so the installer opens over the desktop on every boot.
+(
+    startup: [
+        "crownpaper",
+        "crownbar",
+        "crowndock",
+        "crownotify",
+        "crownos-clipboard",
+        "crownos-install",
+    ],
+    window_rules: [
+        (app_id: "^crownos-installer$", fullscreen: true),
+    ],
+)
