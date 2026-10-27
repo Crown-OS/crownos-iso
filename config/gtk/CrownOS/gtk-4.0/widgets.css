@@ -1,0 +1,122 @@
+entry:focus-within,
+spinbutton:not(.vertical):focus-within {
+  border-color: transparent;
+  box-shadow: none;
+  outline: none;
+  background-image: linear-gradient(@crown_popover_trigger_bg, @crown_popover_trigger_bg),
+    linear-gradient(to bottom, @crown_accent_start, @crown_accent_end);
+  background-clip: padding-box, border-box;
+}
+
+entry > text > placeholder,
+spinbutton > text > placeholder {
+  color: @crown_popover_muted_text;
+}
+
+spinbutton:not(.vertical) > text {
+  min-height: 0;
+  border: none;
+  background: none;
+}
+
+check,
+radio {
+  -gtk-icon-size: 14px;
+}
+
+button:focus-visible,
+check:focus-visible,
+radio:focus-visible,
+switch:focus-visible,
+row:focus-visible,
+scale:focus-visible slider,
+dropdown > button:focus-visible,
+modelbutton:focus-visible {
+  outline: 2px solid alpha(@crown_accent_start, 0.6);
+  outline-offset: 2px;
+}
+
+popover > contents,
+popover > arrow {
+  border: 1px solid @crown_popover_border;
+  background-color: @crown_popover_bg;
+  color: @crown_popover_text;
+}
+
+popover > contents {
+  padding: 5px;
+  border-radius: 14px;
+  box-shadow: 0 3px 20px @crown_surface_shadow;
+}
+
+popover.menu > contents,
+popover.menu > arrow {
+  border-color: @crown_menu_border;
+  background-color: @crown_menu_bg;
+}
+
+popover.menu > contents {
+  border-radius: 10px;
+}
+
+dropdown popover > contents,
+combobox popover > contents {
+  border-radius: 18px;
+}
+
+dropdown popover listview > row,
+combobox popover modelbutton {
+  min-height: 30px;
+  padding: 0 8px;
+  border-radius: 16px;
+  color: @crown_popover_text;
+}
+
+dropdown popover listview > row:hover,
+dropdown popover listview > row:selected,
+combobox popover modelbutton:hover {
+  background-color: @crown_popover_hover_bg;
+  color: @crown_popover_text;
+}
+
+dropdown popover listview > row:hover *,
+dropdown popover listview > row:selected *,
+combobox popover modelbutton:hover * {
+  color: @crown_popover_text;
+}
+
+dropdown popover listview > row image {
+  color: @crown_accent_start;
+}
+
+windowcontrols > button > image {
+  background: none;
+  box-shadow: none;
+}
+
+windowcontrols > button:hover {
+  background-color: @crown_surface_hover;
+}
+
+window.csd,
+window.solid-csd {
+  border-radius: 14px;
+}
+
+entry > text > selection,
+spinbutton > text > selection,
+textview > text > selection,
+editablelabel > stack > text > selection,
+label > selection {
+  background-color: alpha(@crown_accent_end, 0.18);
+  color: inherit;
+}
+
+entry > text > selection:focus-within,
+spinbutton > text > selection:focus-within,
+textview > text > selection:focus-within,
+editablelabel > stack > text > selection:focus-within,
+label > selection:focus-within {
+  background-color: alpha(@crown_accent_end, 0.35);
+  color: inherit;
+}

@@ -1,0 +1,62 @@
+@import url("accent.css");
+
+@define-color crown_surface_bg #f3f3f3;
+@define-color crown_surface_raised #ffffff;
+@define-color crown_surface_sunken #f2f2f6;
+@define-color crown_surface_border rgba(27, 27, 42, 0.07);
+@define-color crown_surface_hairline rgba(27, 27, 42, 0.047);
+@define-color crown_surface_hover rgba(42, 31, 69, 0.047);
+@define-color crown_surface_shadow rgba(20, 20, 31, 0.051);
+
+@define-color crown_text_primary #17151f;
+@define-color crown_text_body #403e4a;
+@define-color crown_text_muted #8b8996;
+@define-color crown_text_disabled #c2c0cb;
+@define-color crown_text_on_accent #ffffff;
+@define-color crown_icon #3d3b47;
+@define-color crown_icon_muted #78768a;
+
+@define-color crown_control_track #e7e5f1;
+@define-color crown_control_knob #ffffff;
+@define-color crown_control_knob_shadow rgba(0, 0, 0, 0.051);
+@define-color crown_toggle_off_start #edebf6;
+@define-color crown_toggle_off_end #d9d6e8;
+
+@define-color crown_status_success #159c4e;
+@define-color crown_status_warning #b45409;
+@define-color crown_status_danger #c22727;
+@define-color crown_status_neutral #8a8a8f;
+@define-color crown_status_danger_bg #dc2a2a;
+@define-color crown_status_on_danger #ffffff;
+
+@define-color crown_popover_bg #ffffff;
+@define-color crown_popover_border #e7e5f1;
+@define-color crown_popover_text #1b1926;
+@define-color crown_popover_muted_text #78768a;
+@define-color crown_popover_hover_bg #f1f0f7;
+@define-color crown_popover_trigger_bg #ffffff;
+
+@define-color crown_radio_unselected_bg #ffffff;
+@define-color crown_radio_unselected_border #d9d6e8;
+@define-color crown_radio_hole #ffffff;
+
+@define-color crown_menu_bg #f9f8fd;
+@define-color crown_menu_border #e7e5f1;
+@define-color crown_menu_text #1e1c29;
+@define-color crown_menu_shortcut_text #8e8c99;
+@define-color crown_menu_disabled_text #c2c0cb;
+@define-color crown_menu_header_text #8e8c99;
+@define-color crown_menu_separator #e7e5f1;
+
+@define-color crown_sidebar_separator #eae8f2;
+@define-color crown_sidebar_text #646464;
+@define-color crown_sidebar_selected_text #545454;
+@define-color crown_sidebar_icon #646464;
+@define-color crown_sidebar_selected_icon #545454;
+@define-color crown_sidebar_hover_bg rgba(42, 31, 69, 0.031);
+@define-color crown_sidebar_selected_bg rgba(176, 176, 176, 0.5);
+@define-color crown_sidebar_selected_border transparent;
+
+@define-color crown_tinted_start alpha(@crown_accent_start, 0.18);
+@define-color crown_tinted_end alpha(@crown_accent_end, 0.18);
+@define-color crown_tinted_text @crown_accent_end;

@@ -1,0 +1,116 @@
+list,
+listview,
+columnview,
+treeview.view {
+  background-color: @crown_surface_raised;
+  color: @crown_text_primary;
+}
+
+row:hover,
+treeview.view:hover {
+  background-color: @crown_surface_hover;
+}
+
+row:selected,
+.view:selected,
+treeview.view:selected,
+iconview:selected,
+flowboxchild:selected {
+  background-color: @crown_accent_end;
+  color: @crown_text_on_accent;
+}
+
+treeview.view header button {
+  min-height: 0;
+  padding: 4px 8px;
+  border: none;
+  border-bottom: 1px solid @crown_surface_hairline;
+  border-radius: 0;
+  background-color: @crown_surface_raised;
+  color: @crown_text_muted;
+}
+
+.card,
+list.boxed-list,
+listview.boxed-list {
+  border: 1px solid @crown_surface_border;
+  border-radius: 14px;
+  background-color: @crown_surface_raised;
+  box-shadow: none;
+}
+
+list.boxed-list > row,
+listview.boxed-list > row {
+  border-bottom: 1px solid @crown_surface_hairline;
+}
+
+list.boxed-list > row:last-child,
+listview.boxed-list > row:last-child {
+  border-bottom: none;
+}
+
+.sidebar,
+.navigation-sidebar,
+placessidebar list,
+stacksidebar list {
+  border: none;
+  background-color: transparent;
+  color: @crown_sidebar_text;
+}
+
+.navigation-sidebar,
+placessidebar list,
+stacksidebar list {
+  padding: 6px 12px;
+}
+
+.navigation-sidebar > row,
+placessidebar row,
+stacksidebar row {
+  min-height: 36px;
+  margin: 2px 0;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background-color: transparent;
+  color: @crown_sidebar_text;
+}
+
+.navigation-sidebar > row image,
+placessidebar row image {
+  color: @crown_sidebar_icon;
+}
+
+.navigation-sidebar > row:hover,
+placessidebar row:hover,
+stacksidebar row:hover {
+  background-color: @crown_sidebar_hover_bg;
+}
+
+.navigation-sidebar > row:selected,
+placessidebar row:selected,
+stacksidebar row:selected {
+  border-color: @crown_sidebar_selected_border;
+  background-color: @crown_sidebar_selected_bg;
+  color: @crown_sidebar_selected_text;
+}
+
+.navigation-sidebar > row:selected *,
+placessidebar row:selected *,
+stacksidebar row:selected * {
+  color: @crown_sidebar_selected_icon;
+}
+
+calendar {
+  border: 1px solid @crown_surface_border;
+  border-radius: 14px;
+  background-color: @crown_surface_raised;
+  color: @crown_text_primary;
+}
+
+calendar:selected,
+calendar .day-number:selected {
+  border-radius: 14px;
+  background-color: @crown_accent_end;
+  color: @crown_text_on_accent;
+}

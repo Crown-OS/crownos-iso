@@ -1,0 +1,39 @@
+infobar,
+infobar > revealer > box {
+  border: none;
+  background-color: transparent;
+  background-image: none;
+}
+
+infobar > revealer > box {
+  margin: 6px;
+  padding: 12px;
+  border: 1px solid alpha(@crown_status_neutral, 0.32);
+  border-radius: 8px;
+  background-color: alpha(@crown_status_neutral, 0.1);
+  color: @crown_text_primary;
+}
+
+infobar.info > revealer > box,
+infobar.question > revealer > box {
+  border-color: alpha(@crown_accent_start, 0.32);
+  background-color: alpha(@crown_accent_start, 0.1);
+}
+
+infobar.warning > revealer > box {
+  border-color: alpha(@crown_status_warning, 0.32);
+  background-color: alpha(@crown_status_warning, 0.1);
+}
+
+infobar.error > revealer > box {
+  border-color: alpha(@crown_status_danger, 0.32);
+  background-color: alpha(@crown_status_danger, 0.1);
+}
+
+infobar label {
+  color: @crown_text_primary;
+}
+
+spinner {
+  color: @crown_accent_end;
+}

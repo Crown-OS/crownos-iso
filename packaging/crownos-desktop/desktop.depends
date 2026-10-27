@@ -1,0 +1,20 @@
+# System services and drivers the desktop needs beside its own components.
+bluez
+dbus
+inter-font
+kitty
+libxkbcommon
+mesa
+networkmanager
+pipewire
+pipewire-pulse
+vulkan-icd-loader
+vulkan-intel
+vulkan-nouveau
+vulkan-radeon
+wayland
+wireplumber
+xdg-desktop-portal
+xdg-desktop-portal-gtk
+xdg-utils
+xwayland-satellite

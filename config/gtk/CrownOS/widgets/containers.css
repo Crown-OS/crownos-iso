@@ -1,0 +1,134 @@
+headerbar,
+.titlebar {
+  min-height: 46px;
+  border: none;
+  border-bottom: 1px solid @crown_surface_hairline;
+  background-color: @crown_surface_bg;
+  background-image: none;
+  box-shadow: none;
+  color: @crown_text_primary;
+}
+
+headerbar:backdrop,
+.titlebar:backdrop {
+  background-color: @crown_surface_bg;
+  color: @crown_text_muted;
+}
+
+headerbar .title {
+  font-weight: 600;
+  color: @crown_text_primary;
+}
+
+headerbar .subtitle {
+  color: @crown_text_muted;
+}
+
+headerbar button:not(.suggested-action):not(.destructive-action):not(:checked):not(.combo),
+headerbar button:not(.suggested-action):not(.destructive-action):not(:checked):not(.combo):disabled {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+headerbar button.image-button,
+headerbar button.titlebutton,
+windowcontrols > button {
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+  border-radius: 8px;
+  color: @crown_icon;
+}
+
+paned > separator {
+  background-color: @crown_sidebar_separator;
+}
+
+frame > border,
+.frame {
+  border-color: @crown_surface_border;
+}
+
+stackswitcher,
+notebook > header > tabs {
+  padding: 2px;
+  border-radius: 14px;
+  background-color: @crown_control_track;
+}
+
+stackswitcher > button,
+notebook > header > tabs > tab {
+  min-height: 22px;
+  min-width: 0;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background-color: transparent;
+  background-image: none;
+  box-shadow: none;
+  outline: none;
+  font-size: 13px;
+  color: @crown_text_muted;
+}
+
+stackswitcher > button:hover,
+stackswitcher > button.toggle:hover,
+notebook > header > tabs > tab:hover {
+  background-color: alpha(@crown_surface_hover, 0.6);
+  background-image: none;
+}
+
+stackswitcher > button:checked,
+stackswitcher > button.toggle:checked,
+notebook > header > tabs > tab:checked {
+  border-color: @crown_popover_border;
+  background-color: @crown_popover_trigger_bg;
+  background-image: none;
+  color: @crown_text_primary;
+}
+
+stackswitcher > button:disabled {
+  color: @crown_text_disabled;
+}
+
+notebook {
+  border: none;
+  background-color: transparent;
+}
+
+notebook > header {
+  border: none;
+  background-color: transparent;
+  box-shadow: none;
+  padding: 6px;
+}
+
+notebook > header.top,
+notebook > header.bottom {
+  padding: 6px 12px;
+}
+
+notebook > stack:not(:only-child) {
+  background-color: @crown_surface_bg;
+}
+
+notebook > header.top > tabs > tab,
+notebook > header.top > tabs > tab:hover,
+notebook > header.top > tabs > tab:checked,
+notebook > header.bottom > tabs > tab,
+notebook > header.bottom > tabs > tab:hover,
+notebook > header.bottom > tabs > tab:checked,
+notebook > header.left > tabs > tab,
+notebook > header.left > tabs > tab:hover,
+notebook > header.left > tabs > tab:checked,
+notebook > header.right > tabs > tab,
+notebook > header.right > tabs > tab:hover,
+notebook > header.right > tabs > tab:checked {
+  margin: 0;
+  padding: 0 12px;
+  box-shadow: none;
+}
+
+notebook.frame {
+  border-color: @crown_surface_border;
+}

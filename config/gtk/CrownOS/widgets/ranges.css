@@ -1,0 +1,158 @@
+scale.horizontal {
+  min-height: 30px;
+  padding: 0 13px;
+}
+
+scale.vertical {
+  min-width: 30px;
+  padding: 13px 0;
+}
+
+scale trough,
+scale trough:disabled {
+  border: none;
+  border-radius: 4px;
+  outline: none;
+  background-color: @crown_control_track;
+  background-image: none;
+  box-shadow: none;
+}
+
+scale.horizontal trough {
+  min-height: 8px;
+}
+
+scale.vertical trough {
+  min-width: 8px;
+}
+
+scale highlight,
+scale highlight:disabled {
+  border: none;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+scale.horizontal highlight {
+  min-height: 8px;
+  background-image: linear-gradient(to right, @crown_accent_start, @crown_accent_end);
+}
+
+scale.vertical highlight {
+  min-width: 8px;
+  background-image: linear-gradient(to bottom, @crown_accent_start, @crown_accent_end);
+}
+
+scale slider,
+scale slider:hover,
+scale slider:active,
+scale slider:disabled {
+  border: none;
+  border-radius: 10px;
+  background-color: alpha(@crown_control_knob, 0.85);
+  box-shadow: 0 0 0 1.75px @crown_control_knob_shadow;
+  outline: none;
+}
+
+scale.horizontal slider {
+  min-width: 26px;
+  min-height: 20px;
+  margin: -6px -13px;
+  background-image: linear-gradient(to right, #f5f5f5, alpha(#f5f5f5, 0) 11%, alpha(#f5f5f5, 0) 89%, #f5f5f5);
+}
+
+scale.vertical slider {
+  min-width: 20px;
+  min-height: 26px;
+  margin: -13px -6px;
+  background-image: linear-gradient(to bottom, #f5f5f5, alpha(#f5f5f5, 0) 11%, alpha(#f5f5f5, 0) 89%, #f5f5f5);
+}
+
+scale:disabled {
+  opacity: 0.4;
+}
+
+scale value,
+scale marks {
+  color: @crown_text_muted;
+}
+
+progressbar > trough,
+levelbar > trough {
+  border: none;
+  border-radius: 4px;
+  background-color: @crown_control_track;
+  background-image: none;
+  box-shadow: none;
+}
+
+progressbar.horizontal > trough,
+progressbar.horizontal > trough > progress {
+  margin: 0;
+  min-height: 8px;
+}
+
+progressbar.vertical > trough,
+progressbar.vertical > trough > progress {
+  margin: 0;
+  min-width: 8px;
+}
+
+progressbar > trough > progress {
+  border: none;
+  border-radius: 4px;
+  background-color: transparent;
+  background-image: linear-gradient(to right, @crown_accent_start, @crown_accent_end);
+  box-shadow: none;
+}
+
+progressbar > text {
+  color: @crown_text_muted;
+}
+
+levelbar block {
+  min-height: 8px;
+  min-width: 8px;
+  border: none;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+levelbar block.filled,
+levelbar block.high {
+  background-color: @crown_accent_end;
+}
+
+levelbar block.low {
+  background-color: @crown_status_warning;
+}
+
+levelbar block.full {
+  background-color: @crown_status_success;
+}
+
+levelbar block.empty {
+  background-color: transparent;
+}
+
+scrollbar,
+scrollbar trough {
+  border: none;
+  background-color: transparent;
+  background-image: none;
+  box-shadow: none;
+}
+
+scrollbar slider {
+  border: none;
+  border-radius: 9999px;
+  background-color: alpha(@crown_text_muted, 0.45);
+}
+
+scrollbar slider:hover {
+  background-color: alpha(@crown_text_muted, 0.7);
+}
+
+scrollbar slider:active {
+  background-color: @crown_accent_start;
+}

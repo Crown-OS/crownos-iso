@@ -1,0 +1,65 @@
+entry,
+spinbutton:not(.vertical) {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid @crown_popover_border;
+  border-radius: 10px;
+  background-color: @crown_popover_trigger_bg;
+  background-image: none;
+  box-shadow: none;
+  color: @crown_popover_text;
+  caret-color: @crown_accent_start;
+}
+
+entry image,
+spinbutton image {
+  color: @crown_popover_muted_text;
+}
+
+entry:disabled,
+spinbutton:disabled {
+  background-color: alpha(@crown_popover_trigger_bg, 0.4);
+  color: @crown_text_disabled;
+}
+
+entry.error {
+  border-color: @crown_status_danger;
+  color: @crown_status_danger;
+}
+
+entry.warning {
+  border-color: @crown_status_warning;
+}
+
+entry selection,
+spinbutton selection {
+  background-color: alpha(@crown_accent_end, 0.35);
+}
+
+entry progress {
+  border-color: @crown_accent_end;
+  background-image: none;
+  background-color: transparent;
+}
+
+spinbutton:not(.vertical) > button,
+spinbutton:not(.vertical) > button:disabled {
+  min-height: 24px;
+  min-width: 24px;
+  margin: 4px 0;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background-color: transparent;
+  color: @crown_icon_muted;
+}
+
+spinbutton:not(.vertical) > button:hover {
+  background-image: none;
+  background-color: @crown_surface_hover;
+  color: @crown_icon;
+}
+
+spinbutton:not(.vertical) > button:disabled {
+  color: @crown_text_disabled;
+}
