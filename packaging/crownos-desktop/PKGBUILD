@@ -19,4 +19,7 @@ package() {
     install -d "$pkgdir/usr/share/themes"
     cp -r --no-preserve=ownership -- "$startdir/themes/." "$pkgdir/usr/share/themes/"
     install -Dm644 -t "$pkgdir/usr/share/glib-2.0/schemas" "$startdir/90_crownos-theme.gschema.override"
+    install -Dm644 -t "$pkgdir/usr/share/fontconfig/conf.avail" "$startdir/60-crownos-inter.conf"
+    install -d "$pkgdir/etc/fonts/conf.d"
+    ln -s /usr/share/fontconfig/conf.avail/60-crownos-inter.conf "$pkgdir/etc/fonts/conf.d/"
 }
