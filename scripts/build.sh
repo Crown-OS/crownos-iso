@@ -26,6 +26,7 @@ staged_mirror=$profile/airootfs/var/cache/crownos/mirror
 staged_installer=$profile/airootfs/usr/bin/crownos-installer
 staged_key=$profile/airootfs/usr/share/crownos/crownos-archive-keyring.asc
 staged_icons=$profile/airootfs/usr/share/icons
+staged_root_config=$profile/airootfs/root/.config
 icon_theme_release=2026-09-10
 icon_theme_archive=$target/whitesur-icon-theme-$icon_theme_release.tar.gz
 
@@ -78,11 +79,6 @@ build_desktop_package() {
     rm -rf -- "$build"
     cp -r -- "$root/packaging/." "$build"
     cp -r -- "$root/config" "$build/config"
-    cp -r -- "$root/config/." "$profile/airootfs/etc/skel/.config/"
-    cp -r -- "$root/config/." "$profile/airootfs/home/crownos-live/.config/"
-    cp -r -- "$root/config/." "$profile/airootfs/root/.config/"
-    install -Dm644 -- "$root/profile/airootfs/etc/default/useradd" "$profile/airootfs/etc/default/useradd"
-    install -Dm644 -- "$root/profile/airootfs/etc/default/useradd" "$build/useradd"
     (cd -- "$build" && CROWNOS_COMPONENTS="${components[*]}" CROWNOS_VERSION=$(date +%Y.%m.%d) \
         PKGDEST=$repo_dir makepkg --force --nodeps)
 }
@@ -91,6 +87,12 @@ write_pacman_conf() {
     cp -- "$profile/pacman.conf" "$target/pacman.conf"
     repo-add "$repo_dir/crownos.db.tar.zst" "$repo_dir"/*.pkg.tar.zst
     printf '\n[crownos]\nSigLevel = Optional TrustAll\nServer = file://%s\n' "$repo_dir" >>"$target/pacman.conf"
+}
+
+stage_root_config() {
+    rm -rf -- "$staged_root_config"
+    mkdir -p -- "$staged_root_config"
+    cp -r -- "$root/config/." "$staged_root_config/"
 }
 
 stage_mirror() {
@@ -134,6 +136,7 @@ components=() packages=()
 live_packages
 build_desktop_package
 write_pacman_conf
+stage_root_config
 stage_mirror
 stage_installer
 stage_repo_key

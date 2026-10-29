@@ -1,0 +1,3 @@
+post_install() {
+    useradd --defaults --shell /usr/bin/fish
+}
