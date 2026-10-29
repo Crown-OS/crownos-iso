@@ -76,12 +76,11 @@ live_packages() {
 build_desktop_package() {
     local build=$target/crownos-desktop
     rm -rf -- "$build"
-    cp -r -- "$root/packaging/crownos-desktop" "$build"
-    cp -r -- "$root/config/gtk" "$build/themes"
-    cp -r -- "$root/config/fish" "$build/fish"
-    install -Dm644 -- "$root/config/fish/config.fish" "$profile/airootfs/etc/skel/.config/fish/config.fish"
-    install -Dm644 -- "$root/config/fish/config.fish" "$profile/airootfs/home/crownos-live/.config/fish/config.fish"
-    install -Dm644 -- "$root/config/fish/config.fish" "$profile/airootfs/root/.config/fish/config.fish"
+    cp -r -- "$root/packaging/." "$build"
+    cp -r -- "$root/config" "$build/config"
+    cp -r -- "$root/config/." "$profile/airootfs/etc/skel/.config/"
+    cp -r -- "$root/config/." "$profile/airootfs/home/crownos-live/.config/"
+    cp -r -- "$root/config/." "$profile/airootfs/root/.config/"
     install -Dm644 -- "$root/profile/airootfs/etc/default/useradd" "$profile/airootfs/etc/default/useradd"
     install -Dm644 -- "$root/profile/airootfs/etc/default/useradd" "$build/useradd"
     (cd -- "$build" && CROWNOS_COMPONENTS="${components[*]}" CROWNOS_VERSION=$(date +%Y.%m.%d) \

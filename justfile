@@ -40,4 +40,4 @@ reset-vm:
 
 check:
     for script in scripts/*.sh; do bash -n "$script"; done
-    shellcheck -x scripts/*.sh packaging/crownos-desktop/PKGBUILD
+    shellcheck -x scripts/*.sh packaging/PKGBUILD

@@ -2,7 +2,7 @@
 # The CrownOS desktop as one package: every component the ISO bundles plus the
 # services they need and the CrownOS GTK themes. scripts/build.sh passes the
 # components in CROWNOS_COMPONENTS, the version in CROWNOS_VERSION and stages
-# themes from config/gtk in themes/ and Fish defaults from config/fish in fish/.
+# the defaults from config/ plus the useradd configuration beside this file.
 
 pkgname=crownos-desktop
 pkgver=${CROWNOS_VERSION:?}
@@ -16,9 +16,9 @@ read -ra components <<<"${CROWNOS_COMPONENTS:-}"
 depends+=("${components[@]}")
 
 package() {
-    install -d "$pkgdir/usr/share/themes"
-    cp -r --no-preserve=ownership -- "$startdir/themes/." "$pkgdir/usr/share/themes/"
-    install -Dm644 "$startdir/fish/config.fish" "$pkgdir/etc/skel/.config/fish/config.fish"
+    install -d "$pkgdir/usr/share/themes" "$pkgdir/etc/skel/.config"
+    cp -r --no-preserve=ownership -- "$startdir/config/." "$pkgdir/etc/skel/.config/"
+    cp -r --no-preserve=ownership -- "$startdir/config/gtk/." "$pkgdir/usr/share/themes/"
     install -Dm644 "$startdir/useradd" "$pkgdir/etc/default/useradd"
     install -Dm644 -t "$pkgdir/usr/share/glib-2.0/schemas" "$startdir/90_crownos-theme.gschema.override"
     install -Dm644 -t "$pkgdir/usr/share/fontconfig/conf.avail" "$startdir/60-crownos-inter.conf"
