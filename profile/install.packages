@@ -10,6 +10,9 @@ efibootmgr
 linux
 linux-firmware
 mkinitcpio
-nano
+nvim
+kitty
+btop
 networkmanager
 sudo
+fish
