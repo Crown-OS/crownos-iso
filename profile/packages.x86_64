@@ -6,6 +6,7 @@ cage
 dosfstools
 e2fsprogs
 efibootmgr
+fish
 gptfdisk
 gsettings-desktop-schemas
 intel-ucode
