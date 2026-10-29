@@ -6,6 +6,7 @@ cage
 dosfstools
 e2fsprogs
 efibootmgr
+fastfetch
 fish
 gptfdisk
 gsettings-desktop-schemas
@@ -18,8 +19,8 @@ mkinitcpio-archiso
 networkmanager
 ntfs-3g
 parted
-sudo
 starship
+sudo
 ttf-dejavu
 vulkan-icd-loader
 vulkan-intel

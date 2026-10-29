@@ -8,9 +8,10 @@ crownos-desktop
 dosfstools
 e2fsprogs
 efibootmgr
-linux
+linux-cachyos
 linux-firmware
 mkinitcpio
+nano
 nvim
 kitty
 btop
@@ -18,3 +19,4 @@ networkmanager
 sudo
 fish
 starship
+fastfetch
