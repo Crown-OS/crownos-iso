@@ -78,6 +78,12 @@ build_desktop_package() {
     rm -rf -- "$build"
     cp -r -- "$root/packaging/crownos-desktop" "$build"
     cp -r -- "$root/config/gtk" "$build/themes"
+    cp -r -- "$root/config/fish" "$build/fish"
+    install -Dm644 -- "$root/config/fish/config.fish" "$profile/airootfs/etc/skel/.config/fish/config.fish"
+    install -Dm644 -- "$root/config/fish/config.fish" "$profile/airootfs/home/crownos-live/.config/fish/config.fish"
+    install -Dm644 -- "$root/config/fish/config.fish" "$profile/airootfs/root/.config/fish/config.fish"
+    install -Dm644 -- "$root/profile/airootfs/etc/default/useradd" "$profile/airootfs/etc/default/useradd"
+    install -Dm644 -- "$root/profile/airootfs/etc/default/useradd" "$build/useradd"
     (cd -- "$build" && CROWNOS_COMPONENTS="${components[*]}" CROWNOS_VERSION=$(date +%Y.%m.%d) \
         PKGDEST=$repo_dir makepkg --force --nodeps)
 }

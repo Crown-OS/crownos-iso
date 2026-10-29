@@ -19,6 +19,7 @@ networkmanager
 ntfs-3g
 parted
 sudo
+starship
 ttf-dejavu
 vulkan-icd-loader
 vulkan-intel

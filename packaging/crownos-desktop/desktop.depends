@@ -1,10 +1,12 @@
 # System services and drivers the desktop needs beside its own components.
 bluez
 dbus
+fish
 inter-font
 kitty
 libxkbcommon
 mesa
+starship
 networkmanager
 pipewire
 pipewire-pulse

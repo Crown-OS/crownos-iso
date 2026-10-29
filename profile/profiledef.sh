@@ -22,4 +22,9 @@ file_permissions=(
   ["/etc/sudoers.d/crownos-live"]="0:0:440"
   ["/usr/bin/crownos-installer"]="0:0:755"
   ["/usr/bin/crownos-install"]="0:0:755"
+  ["/etc/default/useradd"]="0:0:644"
+  ["/etc/skel/.config/fish/config.fish"]="0:0:644"
+  ["/root/.config/fish/config.fish"]="0:0:644"
+  ["/home/crownos-live/.config/fish"]="1000:1000:755"
+  ["/home/crownos-live/.config/fish/config.fish"]="1000:1000:644"
 )
