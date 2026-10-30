@@ -18,7 +18,7 @@ PAMName=login
 WorkingDirectory=~
 ExecStart=/usr/bin/compositor
 Environment=XDG_SESSION_TYPE=wayland
-Environment=XDG_ICON_THEME=WhiteSur-dark
+Environment=XDG_ICON_THEME=CrownOS-dark
 Environment=CROWN_BACKEND=kms
 Environment=CROWN_CONFIG_DIR=/usr/share/crownos/live
 Environment=LIBSEAT_BACKEND=logind

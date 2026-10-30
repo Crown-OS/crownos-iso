@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Packs the latest CrownOS component releases into a bootable ISO under out/.
 #
-#   build.sh [--installer CHECKOUT] [--repo-key KEY] [--missing-release fail|skip]
+#   build.sh [--installer CHECKOUT] [--icon-theme CHECKOUT] [--repo-key KEY] [--missing-release fail|skip]
 #
 #   --installer        build this crownos-installer checkout instead of using its release
+#   --icon-theme       the crownos-icon-theme checkout to install [default: ../crownos-icon-theme]
 #   --repo-key         the CrownOS repository signing key the installer trusts
 #   --missing-release  what to do with a component that has no release yet [default: fail]
 #
@@ -27,21 +28,21 @@ staged_installer=$profile/airootfs/usr/bin/crownos-installer
 staged_key=$profile/airootfs/usr/share/crownos/crownos-archive-keyring.asc
 staged_icons=$profile/airootfs/usr/share/icons
 staged_root_config=$profile/airootfs/root/.config
-icon_theme_release=2026-09-10
-icon_theme_archive=$target/whitesur-icon-theme-$icon_theme_release.tar.gz
 
 warn() { printf 'warning: %s\n' "$*" >&2; }
 
-installer='' repo_key='' missing_release=fail
+installer='' icon_theme=$root/../crownos-icon-theme repo_key='' missing_release=fail
 while (($#)); do
     case $1 in
         --installer) installer=$(realpath -- "${2:?--installer needs a checkout}"); shift 2 ;;
+        --icon-theme) icon_theme=${2:?--icon-theme needs a checkout}; shift 2 ;;
         --repo-key) repo_key=${2:?--repo-key needs a file}; shift 2 ;;
         --missing-release) missing_release=${2:?--missing-release needs fail or skip}; shift 2 ;;
         *) die "unknown argument: $1" ;;
     esac
 done
 [[ $missing_release == @(fail|skip) ]] || die "--missing-release must be fail or skip"
+[[ -x $icon_theme/install.sh ]] || die "no crownos-icon-theme checkout at $icon_theme"
 ((EUID != 0)) || die "run as a normal user; only the mkarchiso step needs root and asks sudo for it"
 
 fetch_components() {
@@ -117,17 +118,8 @@ stage_repo_key() {
 }
 
 stage_icon_theme() {
-    if [[ ! -e $icon_theme_archive ]]; then
-        mkdir -p -- "$target"
-        curl -fsSL --output "$icon_theme_archive.part" \
-            "https://github.com/vinceliuice/WhiteSur-icon-theme/archive/refs/tags/$icon_theme_release.tar.gz"
-        mv -- "$icon_theme_archive.part" "$icon_theme_archive"
-    fi
-    local source=$target/whitesur-icon-theme
-    rm -rf -- "$source" "$staged_icons"
-    mkdir -p -- "$source"
-    tar -xzf "$icon_theme_archive" --strip-components=1 -C "$source"
-    "$source/install.sh" --dest "$staged_icons"
+    rm -rf -- "$staged_icons"
+    "$icon_theme/install.sh" --dest "$staged_icons"
 }
 
 fetch_components

@@ -42,13 +42,17 @@ jobs:
       - name: Free disk space
         run: rm -rf /host/dotnet/* /host/android/* /host/toolcache/*
       - name: Toolchain
-        run: pacman -Syu --noconfirm --needed archiso base-devel github-cli git sudo
+        run: pacman -Syu --noconfirm --needed archiso base-devel github-cli git sudo gtk-update-icon-cache
       - name: Trust CachyOS packages
         run: |
           pacman-key --init
           pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com
           pacman-key --lsign-key F3B607488DB35A47
       - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: Crown-OS/crownos-icon-theme
+          path: crownos-icon-theme
       - name: Build user
         run: |
           useradd --create-home builder
@@ -64,7 +68,8 @@ jobs:
             printf '%s\n' "$REPO_KEY" > /tmp/crownos-archive-keyring.asc
             key_args=(--repo-key /tmp/crownos-archive-keyring.asc)
           fi
-          sudo -u builder -H --preserve-env=GH_TOKEN scripts/build.sh "${key_args[@]}"
+          sudo -u builder -H --preserve-env=GH_TOKEN scripts/build.sh \
+            --icon-theme "$GITHUB_WORKSPACE/crownos-icon-theme" "${key_args[@]}"
       - uses: actions/upload-artifact@v4
         with:
           name: iso
