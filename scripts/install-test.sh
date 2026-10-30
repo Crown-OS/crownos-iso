@@ -4,8 +4,8 @@
 #
 #   install-test.sh [ISO]   [default: the newest ISO in out/]
 #
-# The disk starts as a GPT table with an empty EFI system partition, the
-# smallest machine the installer accepts. tests/autoinstall.json reaches the
+# The disk starts as an empty GPT table, the smallest machine the installer
+# accepts: it creates its own boot, swap and root partitions. tests/autoinstall.json reaches the
 # live image through fw_cfg, which starts crownos-autoinstall.service there.
 # Logs land in target/install-test/.
 
@@ -20,7 +20,6 @@ firmware=${OVMF_DIR:-/usr/share/edk2/x64}
 work=$root/target/install-test
 install_timeout=${INSTALL_TIMEOUT:-1800}
 boot_timeout=${BOOT_TIMEOUT:-600}
-esp_kib=$((512 * 1024))
 
 iso=$(realpath -- "${1:-$(newest_iso)}")
 [[ -f $iso ]] || die "no ISO to test; run \`just build\` first"
@@ -37,8 +36,7 @@ prepare_disk() {
     rm -rf -- "$work"
     mkdir -p -- "$work"
     truncate -s 24G "$work/disk.raw"
-    printf 'label: gpt\nstart=2048, size=%sKiB, type=uefi\n' "$esp_kib" | sfdisk --quiet "$work/disk.raw"
-    mkfs.fat -F 32 -s 1 --offset=2048 "$work/disk.raw" "$esp_kib" >/dev/null
+    printf 'label: gpt\n' | sfdisk --quiet "$work/disk.raw"
     cp -- "$firmware/OVMF_VARS.4m.fd" "$work/vars.fd"
 }
 
