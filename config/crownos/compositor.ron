@@ -1,0 +1,6 @@
+// Start Crownpaper automatically for installed CrownOS users.
+(
+    startup: [
+        "crownpaper",
+    ],
+)

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=CrownOS Settings
+Comment=Configure CrownOS
+Exec=crownsettings
+Icon=preferences-system
+Terminal=false
+Categories=Settings;DesktopSettings;
