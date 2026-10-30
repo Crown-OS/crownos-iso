@@ -1,6 +1,7 @@
 amd-ucode
 arch-install-scripts
 base
+btop
 btrfs-progs
 cage
 dosfstools
@@ -17,6 +18,7 @@ mesa
 mkinitcpio
 mkinitcpio-archiso
 networkmanager
+nvim
 ntfs-3g
 parted
 starship
@@ -27,5 +29,6 @@ vulkan-intel
 vulkan-nouveau
 vulkan-radeon
 vulkan-swrast
+yay
 xfsprogs
 xorg-xwayland
