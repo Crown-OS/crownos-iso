@@ -8,7 +8,7 @@ libxkbcommon
 mesa
 starship
 fastfetch
-google-chrome
+chromium
 networkmanager
 pipewire
 pipewire-pulse
