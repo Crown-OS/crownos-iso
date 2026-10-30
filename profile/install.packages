@@ -2,6 +2,9 @@
 # their dependencies as the live image's offline repository.
 archlinux-keyring
 cachyos-keyring
+cachyos-mirrorlist
+cachyos-v3-mirrorlist
+cachyos-v4-mirrorlist
 base
 btrfs-progs
 crownos-desktop
