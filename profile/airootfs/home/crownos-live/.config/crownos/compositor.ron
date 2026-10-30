@@ -1,0 +1,15 @@
+// The live image's desktop, staged into the live user's writable CrownOS config
+// directory by scripts/build.sh, so the installer opens over the desktop.
+(
+    startup: [
+        "crownpaper",
+        "crownbar",
+        "crowndock",
+        "crownotify",
+        "crownos-clipboard",
+        "crownos-install",
+    ],
+    window_rules: [
+        (app_id: "^crownos-installer$", fullscreen: true),
+    ],
+)

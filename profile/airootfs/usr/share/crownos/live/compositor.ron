@@ -1,5 +1,5 @@
-// The live image's desktop. crownos-live.service points CROWN_CONFIG_DIR here,
-// so the installer opens over the desktop on every boot.
+// The live image's desktop, staged into the live user's writable CrownOS config
+// directory by scripts/build.sh, so the installer opens over the desktop.
 (
     startup: [
         "crownpaper",

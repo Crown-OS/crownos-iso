@@ -20,7 +20,7 @@ ExecStart=/usr/bin/compositor
 Environment=XDG_SESSION_TYPE=wayland
 Environment=XDG_ICON_THEME=CrownOS-dark
 Environment=CROWN_BACKEND=kms
-Environment=CROWN_CONFIG_DIR=/usr/share/crownos/live
+Environment=CROWN_CONFIG_DIR=/home/crownos-live/.config/crownos
 Environment=LIBSEAT_BACKEND=logind
 TTYPath=/dev/tty1
 TTYReset=yes

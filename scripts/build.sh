@@ -28,6 +28,7 @@ staged_installer=$profile/airootfs/usr/bin/crownos-installer
 staged_key=$profile/airootfs/usr/share/crownos/crownos-archive-keyring.asc
 staged_icons=$profile/airootfs/usr/share/icons
 staged_root_config=$profile/airootfs/root/.config
+staged_live_config=$profile/airootfs/home/crownos-live/.config
 
 warn() { printf 'warning: %s\n' "$*" >&2; }
 
@@ -96,6 +97,14 @@ stage_root_config() {
     cp -r -- "$root/config/." "$staged_root_config/"
 }
 
+stage_live_config() {
+    rm -rf -- "$staged_live_config"
+    mkdir -p -- "$staged_live_config/crownos"
+    cp -r -- "$root/config/." "$staged_live_config/"
+    cp -- "$profile/airootfs/usr/share/crownos/live/compositor.ron" \
+        "$staged_live_config/crownos/compositor.ron"
+}
+
 stage_mirror() {
     "$root/scripts/mirror.sh" "$target/pacman.conf" "$profile/install.packages" "$staged_mirror" "$target/pkg-cache"
 }
@@ -129,6 +138,7 @@ live_packages
 build_desktop_package
 write_pacman_conf
 stage_root_config
+stage_live_config
 stage_mirror
 stage_installer
 stage_repo_key

@@ -1,0 +1,5 @@
+@import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained-dark.css");
+@import url("../palette/dark.css");
+@import url("../palette/aliases.css");
+@import url("../widgets/index.css");
+@import url("widgets.css");

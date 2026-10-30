@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=CrownOS
+Comment=GTK theme matching the CrownUI widget kit
+Encoding=UTF-8
+
+[X-GNOME-Metatheme]
+GtkTheme=CrownOS
+IconTheme=CrownOS-light

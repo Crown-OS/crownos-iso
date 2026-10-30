@@ -1,0 +1,81 @@
+window,
+tooltip,
+menu,
+popover {
+  font-family: "Inter Variable", "Inter", sans-serif;
+}
+
+window,
+.background {
+  background-color: @crown_surface_bg;
+  color: @crown_text_body;
+}
+
+.view,
+iconview,
+textview > text {
+  background-color: @crown_surface_raised;
+  color: @crown_text_primary;
+}
+
+.title,
+.heading,
+.title-1,
+.title-2,
+.title-3,
+.title-4 {
+  color: @crown_text_primary;
+}
+
+.dim-label,
+.subtitle,
+.caption {
+  color: @crown_text_muted;
+  opacity: 1;
+}
+
+label:disabled {
+  color: @crown_text_disabled;
+}
+
+selection {
+  background-color: alpha(@crown_accent_end, 0.35);
+  color: inherit;
+}
+
+separator {
+  background-color: @crown_surface_border;
+  min-width: 1px;
+  min-height: 1px;
+}
+
+link,
+*:link {
+  color: @crown_accent_start;
+}
+
+.error {
+  color: @crown_status_danger;
+}
+
+.warning {
+  color: @crown_status_warning;
+}
+
+.success {
+  color: @crown_status_success;
+}
+
+tooltip,
+tooltip.background {
+  background-color: @crown_popover_bg;
+  border: 1px solid @crown_popover_border;
+  border-radius: 8px;
+  box-shadow: none;
+  color: @crown_popover_text;
+  padding: 6px 10px;
+}
+
+tooltip * {
+  color: @crown_popover_text;
+}

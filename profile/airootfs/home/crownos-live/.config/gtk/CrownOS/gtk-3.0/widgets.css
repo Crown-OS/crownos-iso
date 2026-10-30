@@ -1,0 +1,88 @@
+entry:focus,
+spinbutton:not(.vertical):focus {
+  border-color: transparent;
+  box-shadow: none;
+  background-image: linear-gradient(@crown_popover_trigger_bg, @crown_popover_trigger_bg),
+    linear-gradient(to bottom, @crown_accent_start, @crown_accent_end);
+  background-clip: padding-box, border-box;
+}
+
+spinbutton:not(.vertical) entry,
+spinbutton:not(.vertical) entry:focus,
+combobox entry,
+combobox entry:focus {
+  min-height: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
+popover.background {
+  padding: 5px;
+  border: 1px solid @crown_popover_border;
+  border-radius: 14px;
+  background-color: @crown_popover_bg;
+  box-shadow: 0 3px 20px @crown_surface_shadow;
+  color: @crown_popover_text;
+}
+
+popover.background.menu {
+  border-color: @crown_menu_border;
+  border-radius: 10px;
+  background-color: @crown_menu_bg;
+}
+
+.csd.popup decoration {
+  border-radius: 10px;
+  box-shadow: 0 3px 20px @crown_surface_shadow, 0 0 0 1px @crown_menu_border;
+}
+
+menu,
+.menu,
+.context-menu {
+  padding: 5px;
+  border: none;
+  border-radius: 10px;
+  background-color: @crown_menu_bg;
+  color: @crown_menu_text;
+}
+
+menubar {
+  border-bottom: 1px solid @crown_surface_hairline;
+  background-color: @crown_surface_bg;
+  box-shadow: none;
+}
+
+menubar > menuitem {
+  min-height: 24px;
+  padding: 2px 10px;
+  border-radius: 6px;
+  color: @crown_text_body;
+}
+
+menubar > menuitem:hover {
+  box-shadow: none;
+}
+
+button.titlebutton:hover {
+  background-color: @crown_surface_hover;
+}
+
+decoration {
+  border-radius: 14px 14px 0 0;
+}
+
+*:focus {
+  outline-color: alpha(@crown_accent_start, 0.6);
+}
+
+combobox > box.linked > button.combo {
+  border-radius: 16px;
+}
+
+stackswitcher.linked > button,
+stackswitcher.linked > button:first-child,
+stackswitcher.linked > button:last-child,
+stackswitcher.linked > button:only-child {
+  border-radius: 12px;
+}

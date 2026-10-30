@@ -23,4 +23,7 @@ file_permissions=(
   ["/usr/bin/crownos-installer"]="0:0:755"
   ["/usr/bin/crownos-install"]="0:0:755"
   ["/etc/default/useradd"]="0:0:644"
+  ["/home/crownos-live"]="1000:1000:755"
+  ["/home/crownos-live/.config"]="1000:1000:755"
+  ["/home/crownos-live/.config/crownos"]="1000:1000:755"
 )

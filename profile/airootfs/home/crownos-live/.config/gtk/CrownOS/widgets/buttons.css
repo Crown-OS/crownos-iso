@@ -1,0 +1,107 @@
+button {
+  min-height: 32px;
+  padding: 0 20px;
+  border: 1px solid @crown_popover_border;
+  border-radius: 17px;
+  background-color: @crown_popover_trigger_bg;
+  background-image: none;
+  box-shadow: none;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  color: @crown_text_body;
+  transition: background-color 120ms ease-out, border-color 120ms ease-out;
+}
+
+button:hover {
+  background-image: linear-gradient(alpha(@crown_surface_hover, 0.7), alpha(@crown_surface_hover, 0.7));
+}
+
+button:active {
+  background-image: linear-gradient(@crown_surface_hover, @crown_surface_hover);
+}
+
+button:disabled {
+  border-color: alpha(@crown_popover_border, 0.6);
+  background-color: alpha(@crown_popover_trigger_bg, 0.4);
+  background-image: none;
+  color: @crown_text_disabled;
+}
+
+button.image-button {
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+  border-radius: 8px;
+}
+
+button.circular {
+  border-radius: 9999px;
+}
+
+button.flat,
+button.flat:disabled {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+button.suggested-action,
+button.default {
+  border-color: transparent;
+  background-color: transparent;
+  background-image: linear-gradient(to bottom, @crown_accent_start, @crown_accent_end);
+  color: @crown_text_on_accent;
+}
+
+button.suggested-action:hover,
+button.default:hover {
+  background-image: linear-gradient(alpha(@crown_surface_hover, 0.7), alpha(@crown_surface_hover, 0.7)),
+    linear-gradient(to bottom, @crown_accent_start, @crown_accent_end);
+}
+
+button.suggested-action:active,
+button.default:active {
+  background-image: linear-gradient(@crown_surface_hover, @crown_surface_hover),
+    linear-gradient(to bottom, @crown_accent_start, @crown_accent_end);
+}
+
+button.suggested-action:disabled,
+button.default:disabled {
+  background-image: linear-gradient(to bottom, alpha(@crown_accent_start, 0.4), alpha(@crown_accent_end, 0.4));
+  color: @crown_text_disabled;
+}
+
+button.destructive-action {
+  border-color: transparent;
+  background-color: @crown_status_danger_bg;
+  color: @crown_status_on_danger;
+}
+
+button.destructive-action:disabled {
+  background-color: alpha(@crown_status_danger_bg, 0.4);
+  color: @crown_text_disabled;
+}
+
+button:checked,
+button.toggle:checked {
+  border-color: transparent;
+  background-color: transparent;
+  background-image: linear-gradient(to bottom, @crown_tinted_start, @crown_tinted_end);
+  color: @crown_tinted_text;
+}
+
+button:checked:hover {
+  background-image: linear-gradient(alpha(@crown_surface_hover, 0.7), alpha(@crown_surface_hover, 0.7)),
+    linear-gradient(to bottom, @crown_tinted_start, @crown_tinted_end);
+}
+
+button.flat:checked:disabled,
+button:checked:disabled {
+  background-image: linear-gradient(to bottom, alpha(@crown_tinted_start, 0.4), alpha(@crown_tinted_end, 0.4));
+  color: @crown_text_disabled;
+}
+
+button.suggested-action label,
+button.destructive-action label,
+button.default label {
+  color: inherit;
+}

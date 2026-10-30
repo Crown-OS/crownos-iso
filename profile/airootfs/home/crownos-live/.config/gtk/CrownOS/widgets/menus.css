@@ -1,0 +1,100 @@
+button.combo,
+dropdown > button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid @crown_popover_border;
+  border-radius: 16px;
+  background-color: @crown_popover_trigger_bg;
+  color: @crown_popover_text;
+}
+
+button.combo:checked,
+dropdown > button:checked {
+  border-color: transparent;
+  background-image: linear-gradient(@crown_popover_trigger_bg, @crown_popover_trigger_bg),
+    linear-gradient(to bottom, @crown_accent_start, @crown_accent_end);
+  background-clip: padding-box, border-box;
+  color: @crown_popover_text;
+}
+
+button.combo arrow,
+dropdown > button arrow {
+  color: @crown_popover_muted_text;
+}
+
+modelbutton,
+menuitem {
+  min-height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: @crown_menu_text;
+  text-shadow: none;
+}
+
+modelbutton:hover,
+modelbutton:selected,
+modelbutton.flat:hover,
+modelbutton.flat:selected,
+popover.menu modelbutton:selected,
+popover.menu modelbutton:selected:active,
+menuitem:hover {
+  background-color: @crown_accent_end;
+  background-image: none;
+  color: @crown_text_on_accent;
+}
+
+modelbutton:hover *,
+modelbutton:selected *,
+menuitem:hover * {
+  color: @crown_text_on_accent;
+}
+
+modelbutton:disabled,
+modelbutton:disabled *,
+menuitem:disabled,
+menuitem:disabled * {
+  color: @crown_menu_disabled_text;
+}
+
+modelbutton accelerator,
+menuitem accelerator {
+  color: @crown_menu_shortcut_text;
+}
+
+modelbutton arrow,
+menuitem arrow {
+  color: @crown_menu_shortcut_text;
+}
+
+modelbutton check,
+modelbutton radio,
+menuitem check,
+menuitem radio {
+  border: none;
+  background-color: transparent;
+  background-image: none;
+  color: inherit;
+}
+
+modelbutton check:checked,
+menuitem check:checked {
+  -gtk-icon-source: -gtk-icontheme("object-select-symbolic");
+}
+
+modelbutton radio:checked,
+menuitem radio:checked {
+  -gtk-icon-source: -gtk-icontheme("media-record-symbolic");
+}
+
+menu separator,
+popover.menu separator {
+  margin: 3px 0;
+  background-color: @crown_menu_separator;
+}
+
+popover.menu label.title,
+menu .title {
+  color: @crown_menu_header_text;
+  font-size: 12px;
+  font-weight: 500;
+}
