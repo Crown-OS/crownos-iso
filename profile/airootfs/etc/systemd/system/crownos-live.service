@@ -16,12 +16,11 @@ StartLimitBurst=3
 User=crownos-live
 PAMName=login
 WorkingDirectory=~
-ExecStart=/usr/bin/crownpositor
+ExecStart=/usr/bin/compositor
 Environment=XDG_SESSION_TYPE=wayland
 Environment=XDG_ICON_THEME=WhiteSur-dark
 Environment=CROWN_BACKEND=kms
 Environment=CROWN_CONFIG_DIR=/usr/share/crownos/live
-Environment=CROWNOS_LIVE_SESSION=1
 Environment=LIBSEAT_BACKEND=logind
 TTYPath=/dev/tty1
 TTYReset=yes
@@ -33,6 +32,7 @@ StandardError=journal
 UtmpIdentifier=tty1
 UtmpMode=user
 Restart=on-failure
+RestartMode=direct
 RestartSec=1
 
 [Install]
