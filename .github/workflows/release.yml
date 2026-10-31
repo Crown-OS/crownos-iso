@@ -1,7 +1,8 @@
 # Builds the ISO from the latest release of every repository in components.txt,
 # installs it unattended in QEMU with no network and boots the result. A pushed
-# tag then signs it, uploads it to the Cloudflare R2 download bucket under the
-# tag's name and publishes that tag's GitHub release with the signature,
+# tag then signs it, uploads it to the SourceForge project under the tag's name,
+# makes it the project's default download, which is what the website's download
+# button serves, and publishes that tag's GitHub release with the signature,
 # checksums and a download link: GitHub caps release files at 2 GiB, which the
 # ISO is over. A manual run or a component's update only builds and tests.
 #
@@ -9,13 +10,11 @@
 #   CROWNOS_SOURCES_TOKEN          read access to component releases, if any repository is private
 #   CROWNOS_ISO_SIGNING_KEY        armored private key that signs the ISO
 #   CROWNOS_ISO_SIGNING_PASSPHRASE its passphrase, if it has one
-#   CROWNOS_R2_ACCOUNT_ID          Cloudflare account that owns the download bucket
-#   CROWNOS_R2_ACCESS_KEY_ID       R2 API token with write access to the bucket
-#   CROWNOS_R2_SECRET_ACCESS_KEY   its secret
+#   CROWNOS_SOURCEFORGE_SSH_KEY    private SSH key added to the SourceForge account that uploads
+#   CROWNOS_SOURCEFORGE_API_KEY    that account's Release API key
 # Variables:
 #   CROWNOS_REPO_KEY               armored public key of the CrownOS package repository
-#   CROWNOS_R2_BUCKET              the download bucket
-#   CROWNOS_DOWNLOAD_URL           the bucket's public URL, e.g. https://downloads.crownos.org
+#   CROWNOS_SOURCEFORGE_USER       that account's username
 
 name: Release
 
@@ -111,6 +110,8 @@ jobs:
     needs: install-test
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    env:
+      SOURCEFORGE_PROJECT: crownos
     steps:
       - uses: actions/checkout@v7
       - uses: actions/download-artifact@v4
@@ -131,29 +132,35 @@ jobs:
           export CROWNOS_SIGNING_KEY=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ { print $10; exit }')
           echo "SIGNING_FINGERPRINT=$CROWNOS_SIGNING_KEY" >> "$GITHUB_ENV"
           for iso in out/*.iso; do scripts/sign.sh "$iso"; done
-      - name: Upload to R2
+      - name: Upload to SourceForge
         env:
-          R2_ACCOUNT_ID: ${{ secrets.CROWNOS_R2_ACCOUNT_ID }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.CROWNOS_R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CROWNOS_R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET: ${{ vars.CROWNOS_R2_BUCKET }}
-          DOWNLOAD_URL: ${{ vars.CROWNOS_DOWNLOAD_URL }}
-          AWS_REGION: auto
-          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
-          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+          SSH_KEY: ${{ secrets.CROWNOS_SOURCEFORGE_SSH_KEY }}
+          API_KEY: ${{ secrets.CROWNOS_SOURCEFORGE_API_KEY }}
+          SOURCEFORGE_USER: ${{ vars.CROWNOS_SOURCEFORGE_USER }}
+          FRS_HOST_KEY: frs.sourceforge.net ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOQD35Ujalhh+JJkPvMckDlhu4dS7WH6NsOJ15iGCJLC
         working-directory: out
         run: |
-          for setting in R2_ACCOUNT_ID AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY R2_BUCKET DOWNLOAD_URL; do
+          for setting in SSH_KEY API_KEY SOURCEFORGE_USER; do
             if [ -z "${!setting}" ]; then
               echo "::error::$setting is not set; see the settings this workflow lists at the top."
               exit 1
             fi
           done
+          ssh_dir=$(mktemp -d)
+          printf '%s\n' "$SSH_KEY" > "$ssh_dir/key"
+          chmod 600 "$ssh_dir/key"
+          printf '%s\n' "$FRS_HOST_KEY" > "$ssh_dir/known_hosts"
+          iso=$(ls *.iso)
           sha256sum -- *.iso > SHA256SUMS
-          aws s3 cp . "s3://$R2_BUCKET/$GITHUB_REF_NAME/" --recursive \
-            --endpoint-url "https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com" \
-            --exclude '*' --include '*.iso' --include '*.sig' --include '*.sha256' --include SHA256SUMS
-          echo "ISO_URL=${DOWNLOAD_URL%/}/$GITHUB_REF_NAME/$(ls *.iso)" >> "$GITHUB_ENV"
+          rsync --archive --partial \
+            -e "ssh -i $ssh_dir/key -o IdentitiesOnly=yes -o UserKnownHostsFile=$ssh_dir/known_hosts" \
+            -- "$iso" "$iso.sig" "$iso.sha256" \
+            "$SOURCEFORGE_USER@frs.sourceforge.net:/home/frs/project/$SOURCEFORGE_PROJECT/$GITHUB_REF_NAME/"
+          curl --fail --silent --show-error -X PUT -H 'Accept: application/json' \
+            -d 'default=windows&default=mac&default=linux&default=bsd&default=solaris&default=others' \
+            --data-urlencode "api_key=$API_KEY" \
+            "https://sourceforge.net/projects/$SOURCEFORGE_PROJECT/files/$GITHUB_REF_NAME/$iso"
+          echo "ISO_URL=https://downloads.sourceforge.net/project/$SOURCEFORGE_PROJECT/$GITHUB_REF_NAME/$iso" >> "$GITHUB_ENV"
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
