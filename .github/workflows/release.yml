@@ -156,10 +156,7 @@ jobs:
             -e "ssh -i $ssh_dir/key -o IdentitiesOnly=yes -o UserKnownHostsFile=$ssh_dir/known_hosts" \
             -- "$iso" "$iso.sig" "$iso.sha256" \
             "$SOURCEFORGE_USER@frs.sourceforge.net:/home/frs/project/$SOURCEFORGE_PROJECT/$GITHUB_REF_NAME/"
-          curl --fail --silent --show-error -X PUT -H 'Accept: application/json' \
-            -d 'default=windows&default=mac&default=linux&default=bsd&default=solaris&default=others' \
-            --data-urlencode "api_key=$API_KEY" \
-            "https://sourceforge.net/projects/$SOURCEFORGE_PROJECT/files/$GITHUB_REF_NAME/$iso"
+          echo "ISO=$iso" >> "$GITHUB_ENV"
           echo "ISO_URL=https://downloads.sourceforge.net/project/$SOURCEFORGE_PROJECT/$GITHUB_REF_NAME/$iso" >> "$GITHUB_ENV"
       - name: Publish release
         env:
@@ -171,3 +168,22 @@ jobs:
             "$iso" "$ISO_URL" "$SIGNING_FINGERPRINT" "$SIGNING_FINGERPRINT" "$iso" "$iso")
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
             --notes "$notes" --generate-notes -- *.sig *.sha256 SHA256SUMS
+      # SourceForge indexes an upload a few minutes after it lands and turns the
+      # Release API away until then, so this retries until the project's best
+      # release is the new ISO.
+      - name: Make it the default download
+        env:
+          API_KEY: ${{ secrets.CROWNOS_SOURCEFORGE_API_KEY }}
+        run: |
+          project_url="https://sourceforge.net/projects/$SOURCEFORGE_PROJECT"
+          for _ in $(seq 20); do
+            curl --silent --show-error -X PUT -H 'Accept: application/json' \
+              -d 'default=windows&default=mac&default=linux&default=bsd&default=solaris&default=others' \
+              --data-urlencode "api_key=$API_KEY" "$project_url/files/$GITHUB_REF_NAME/$ISO" || true
+            if curl --silent --show-error "$project_url/best_release.json" | grep -qF "/$GITHUB_REF_NAME/$ISO"; then
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::error::SourceForge did not make $ISO the default download; set it under Files on $project_url."
+          exit 1
