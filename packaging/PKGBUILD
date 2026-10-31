@@ -1,6 +1,7 @@
 # shellcheck shell=bash disable=SC2034,SC2154
 # The CrownOS desktop as one package: every component the ISO bundles plus the
-# services they need, the CrownOS GTK themes and wallpapers. scripts/build.sh
+# services they need, the CrownOS GTK themes and wallpapers, and the launcher
+# that opens the desktop when a user signs in on tty1. scripts/build.sh
 # passes the components in CROWNOS_COMPONENTS, the version in CROWNOS_VERSION
 # and stages the defaults from config/ beside this file. /etc/default/useradd
 # belongs to shadow, so crownos-desktop.install sets the default shell through
@@ -25,6 +26,8 @@ package() {
     install -Dm644 -t "$pkgdir/usr/share/backgrounds/crownos" "$startdir"/backgrounds/*
     install -Dm644 -t "$pkgdir/usr/share/glib-2.0/schemas" "$startdir/90_crownos-theme.gschema.override"
     install -Dm644 "$startdir/crownos-settings.desktop" "$pkgdir/usr/share/applications/crownos-settings.desktop"
+    install -Dm755 "$startdir/crownos-desktop" "$pkgdir/usr/bin/crownos-desktop"
+    install -Dm644 -t "$pkgdir/usr/share/fish/vendor_conf.d" "$startdir/crownos-desktop.fish"
     install -Dm644 -t "$pkgdir/usr/share/fontconfig/conf.avail" "$startdir/60-crownos-inter.conf"
     install -d "$pkgdir/etc/fonts/conf.d"
     ln -s /usr/share/fontconfig/conf.avail/60-crownos-inter.conf "$pkgdir/etc/fonts/conf.d/"

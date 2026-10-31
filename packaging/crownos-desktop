@@ -1,0 +1,8 @@
+#!/bin/sh
+# Starts the CrownOS desktop in the current login session, on its VT.
+
+export XDG_SESSION_TYPE=wayland
+export XDG_ICON_THEME=CrownOS-dark
+export CROWN_BACKEND=kms
+export LIBSEAT_BACKEND=logind
+exec compositor "$@"
