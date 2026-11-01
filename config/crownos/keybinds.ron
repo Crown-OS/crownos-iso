@@ -1,0 +1,6 @@
+(
+    custom_keybinds: [
+        (keys: "Print", action: "spawn crownos-screenshot shot"),
+        (keys: "Super+Print", action: "spawn crownos-screenshot"),
+    ],
+)

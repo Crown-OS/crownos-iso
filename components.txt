@@ -9,3 +9,4 @@ Crown-OS/crownos-clipboard
 Crown-OS/crowndictator
 Crown-OS/crownconnect-linux
 Crown-OS/crownlauncher
+Crown-OS/crownos-screencapture
