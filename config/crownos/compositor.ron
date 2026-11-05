@@ -1,7 +1,9 @@
-// Start Crownpaper and the polkit agent automatically for installed CrownOS users.
+// Start Crownpaper, the polkit agent and the notification daemon automatically
+// for installed CrownOS users.
 (
     startup: [
         "crownpaper",
         "crownos-polkit-agent",
+        "crownotify",
     ],
 )
