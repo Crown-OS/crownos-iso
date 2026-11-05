@@ -10,4 +10,11 @@ Crown-OS/crowndictator
 Crown-OS/crownconnect-linux
 Crown-OS/crownlauncher
 Crown-OS/crownos-screencapture
+Crown-OS/crownos-appstore
+Crown-OS/crownos-polkit-agent
+Crown-OS/crownos-diskmanager
 Crown-OS/crownos-files
+Crown-OS/crownos-preview
+Crown-OS/crownos-process-monitor
+Crown-OS/crownos-camera
+Crown-OS/crownos-sound-recorder

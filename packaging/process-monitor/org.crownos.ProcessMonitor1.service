@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=org.crownos.ProcessMonitor1
+Exec=/usr/bin/crownos-process-monitor-helper
+User=root
+SystemdService=crownos-process-monitor-helper.service

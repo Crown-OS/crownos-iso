@@ -4,9 +4,12 @@ base
 btop
 btrfs-progs
 cage
+cryptsetup
 dosfstools
 e2fsprogs
 efibootmgr
+exfatprogs
+f2fs-tools
 fastfetch
 fish
 gptfdisk
@@ -21,9 +24,11 @@ networkmanager
 nvim
 ntfs-3g
 parted
+polkit
 starship
 sudo
 ttf-dejavu
+udisks2
 vulkan-icd-loader
 vulkan-intel
 vulkan-nouveau

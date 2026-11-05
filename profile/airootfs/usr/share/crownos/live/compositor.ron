@@ -7,6 +7,7 @@
         "crowndock",
         "crownotify",
         "crownos-clipboard",
+        "crownos-polkit-agent",
         "crownos-install",
     ],
     window_rules: [
