@@ -11,7 +11,9 @@
 # Every package the components publish is installed into the image, which is
 # what the live desktop runs from. The same packages, wrapped in the
 # crownos-desktop meta package, are bundled with the base system as the offline
-# repository the installer pacstraps from.
+# repository the installer pacstraps from. A published package that
+# profile/install.packages names, such as crownos-android, is the installer's
+# choice per machine instead: it goes into the offline repository only.
 
 set -euo pipefail
 shopt -s nullglob
@@ -68,7 +70,12 @@ published_names() {
 
 live_packages() {
     local name
+    local -A chosen_by_installer=()
+    while read -r name; do
+        chosen_by_installer[$name]=1
+    done < <(grep -Ev '^[[:space:]]*(#|$)' "$profile/install.packages")
     for name in "${published[@]}"; do
+        [[ -z ${chosen_by_installer[$name]:-} ]] || continue
         [[ $name == crownos-installer ]] || components+=("$name")
         [[ $name == crownos-installer && -n $installer ]] || packages+=("$name")
     done

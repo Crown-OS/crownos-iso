@@ -26,3 +26,13 @@ fish
 starship
 fastfetch
 chromium
+# Android apps, pacstrapped only when the user turns them on; the Venus
+# render server only on machines whose one GPU is a recent NVIDIA card.
+waydroid
+lxc
+python-gbinder
+libgbinder
+libglibutil
+dnsmasq
+crownos-android
+crownos-android-venus
