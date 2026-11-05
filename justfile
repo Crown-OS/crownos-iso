@@ -30,6 +30,10 @@ test: build-local run
 test-install iso="":
     scripts/install-test.sh {{iso}}
 
+# Install an ISO with Android apps on, check their units and that setup waits for the network [default: the newest one in out/]
+test-install-android iso="":
+    scripts/install-test.sh --android {{iso}}
+
 # Sign an ISO with GnuPG and write its checksum [default: the newest one in out/]
 sign iso="":
     scripts/sign.sh {{iso}}
