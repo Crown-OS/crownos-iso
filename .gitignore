@@ -5,3 +5,5 @@
 /profile/airootfs/var/cache/crownos/
 /profile/airootfs/usr/share/icons/
 /profile/airootfs/root/.config/
+/.playwright-mcp/
+/profile/airootfs/home/crownos-live/.config/
