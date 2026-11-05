@@ -2,6 +2,14 @@
     items: [
         "/usr/share/applications/kitty.desktop",
         "/usr/share/applications/chromium.desktop",
+        "/usr/share/applications/crownos-files.desktop",
+        "/usr/share/applications/crownappstore.desktop",
+        "/usr/share/applications/crownos-preview.desktop",
+        "/usr/share/applications/crownos-camera.desktop",
+        "/usr/share/applications/crownos-sound-recorder.desktop",
+        "/usr/share/applications/crownos-screencapture.desktop",
+        "/usr/share/applications/crownos-process-monitor.desktop",
+        "/usr/share/applications/crownos-diskmanager.desktop",
         "/usr/share/applications/crownos-settings.desktop",
     ],
 )
