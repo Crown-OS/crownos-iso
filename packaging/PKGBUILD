@@ -3,9 +3,9 @@
 # services they need, the CrownOS GTK themes and wallpapers, and the launcher
 # that opens the desktop when a user signs in on tty1. scripts/build.sh
 # passes the components in CROWNOS_COMPONENTS, the version in CROWNOS_VERSION
-# and stages the defaults from config/ beside this file. /etc/default/useradd
-# belongs to shadow, so crownos-desktop.install sets the default shell through
-# useradd.
+# and stages the defaults from config/ and the CrownOS icon themes in icons/
+# beside this file. /etc/default/useradd belongs to shadow, so
+# crownos-desktop.install sets the default shell through useradd.
 
 pkgname=crownos-desktop
 pkgver=${CROWNOS_VERSION:?}
@@ -23,6 +23,7 @@ package() {
     install -d "$pkgdir/usr/share/themes" "$pkgdir/etc/skel/.config"
     cp -r --no-preserve=ownership -- "$startdir/config/." "$pkgdir/etc/skel/.config/"
     cp -r --no-preserve=ownership -- "$startdir/config/gtk/." "$pkgdir/usr/share/themes/"
+    cp -r --no-preserve=ownership -- "$startdir/icons" "$pkgdir/usr/share/icons"
     install -Dm644 -t "$pkgdir/usr/share/backgrounds/crownos" "$startdir"/backgrounds/*
     install -Dm644 -t "$pkgdir/usr/share/glib-2.0/schemas" "$startdir/90_crownos-theme.gschema.override"
     install -Dm644 -t "$pkgdir/usr/share/applications" "$startdir"/*.desktop

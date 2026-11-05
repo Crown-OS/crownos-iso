@@ -1,5 +1,6 @@
 [org.gnome.desktop.interface]
 gtk-theme='CrownOS-dark'
+icon-theme='CrownOS-dark'
 color-scheme='prefer-dark'
 font-name='Inter Variable 11'
 document-font-name='Inter Variable 11'

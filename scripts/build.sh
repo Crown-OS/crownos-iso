@@ -26,7 +26,6 @@ repo_dir=$target/repo
 staged_mirror=$profile/airootfs/var/cache/crownos/mirror
 staged_installer=$profile/airootfs/usr/bin/crownos-installer
 staged_key=$profile/airootfs/usr/share/crownos/crownos-archive-keyring.asc
-staged_icons=$profile/airootfs/usr/share/icons
 staged_root_config=$profile/airootfs/root/.config
 staged_live_config=$profile/airootfs/home/crownos-live/.config
 
@@ -81,6 +80,7 @@ build_desktop_package() {
     rm -rf -- "$build"
     cp -r -- "$root/packaging/." "$build"
     cp -r -- "$root/config" "$build/config"
+    "$icon_theme/install.sh" --dest "$build/icons"
     (cd -- "$build" && CROWNOS_COMPONENTS="${components[*]}" CROWNOS_VERSION=$(date +%Y.%m.%d) \
         PKGDEST=$repo_dir makepkg --force --nodeps)
 }
@@ -126,11 +126,6 @@ stage_repo_key() {
     fi
 }
 
-stage_icon_theme() {
-    rm -rf -- "$staged_icons"
-    "$icon_theme/install.sh" --dest "$staged_icons"
-}
-
 fetch_components
 mapfile -t published < <(published_names)
 components=() packages=()
@@ -142,6 +137,5 @@ stage_live_config
 stage_mirror
 stage_installer
 stage_repo_key
-stage_icon_theme
 
 sudo mkarchiso -v -r -w "$target/iso-work" -o "$root/out" -C "$target/pacman.conf" -p "${packages[*]}" "$profile"
