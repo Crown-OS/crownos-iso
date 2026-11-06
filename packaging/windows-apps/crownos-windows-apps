@@ -1,0 +1,27 @@
+#!/bin/sh
+# shellcheck disable=SC2086
+# Turns Windows apps support on or off. Wine itself is installed by
+# crownos-windows-apps.service once the machine is online.
+set -eu
+
+unit=crownos-windows-apps.service
+wine='wine wine-mono wine-gecko winetricks'
+runtime='gnutls libpulse gst-plugins-base gst-plugins-good sdl2-compat'
+
+case "${1-}" in
+install)
+    exec pacman -Syu --needed --noconfirm $wine $runtime
+    ;;
+on)
+    exec systemctl enable --now --no-block "$unit"
+    ;;
+off)
+    systemctl disable --now "$unit"
+    installed=$(pacman -Qq $wine 2>/dev/null) || true
+    [ -z "$installed" ] || exec pacman -Rns --noconfirm $installed
+    ;;
+*)
+    echo "usage: ${0##*/} on|off" >&2
+    exit 64
+    ;;
+esac

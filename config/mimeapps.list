@@ -31,3 +31,6 @@ audio/x-wav=crownos-preview.desktop
 audio/mp4=crownos-preview.desktop
 audio/x-m4a=crownos-preview.desktop
 audio/aac=crownos-preview.desktop
+application/x-msdownload=wine.desktop
+application/x-msi=wine.desktop
+application/x-ms-shortcut=wine.desktop
