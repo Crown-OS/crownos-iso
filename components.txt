@@ -18,3 +18,4 @@ Crown-OS/crownos-preview
 Crown-OS/crownos-process-monitor
 Crown-OS/crownos-camera
 Crown-OS/crownos-sound-recorder
+Crown-OS/crownos-theme-engine

@@ -1,7 +1,8 @@
-// Start Crownpaper and the polkit agent automatically for installed CrownOS users.
+// Start Crownpaper, the polkit agent and the theme engine automatically for installed CrownOS users.
 (
     startup: [
         "crownpaper",
         "crownos-polkit-agent",
+        "crownos-theme-engine watch",
     ],
 )

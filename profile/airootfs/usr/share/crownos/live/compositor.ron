@@ -8,6 +8,7 @@
         "crownotify",
         "crownos-clipboard",
         "crownos-polkit-agent",
+        "crownos-theme-engine watch",
         "crownos-install",
     ],
     window_rules: [
