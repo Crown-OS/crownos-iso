@@ -138,4 +138,5 @@ stage_mirror
 stage_installer
 stage_repo_key
 
+sudo rm -rf -- "$target/iso-work"
 sudo mkarchiso -v -r -w "$target/iso-work" -o "$root/out" -C "$target/pacman.conf" -p "${packages[*]}" "$profile"
