@@ -1,0 +1,8 @@
+CrownVim is the CrownOS Neovim configuration.
+
+It is a modified version of AstroNvim and its astrocore, astroui and astrolsp
+libraries (https://github.com/AstroNvim), copyright the AstroNvim
+contributors, renamed and adapted for CrownOS in 2026. Colors come from the
+`crownos` colorscheme that crownos-theme-engine writes to colors/crownos.lua.
+
+Distributed under the GNU General Public License v3.0; see LICENSE.

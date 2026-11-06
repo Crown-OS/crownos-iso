@@ -1,0 +1,156 @@
+---CrownVim LSP Toggles
+---
+---Utility functions for easy LSP toggles
+---
+---This module can be loaded with `local ui = require("crownlsp.toggles")`
+---
+---copyright 2023
+---license GNU General Public License v3.0
+---@class crownlsp.toggles
+local M = {}
+
+local function get_config() return require("crownlsp").config end
+
+local function ui_notify(silent, ...) return not silent and vim.notify(...) end
+local function bool2str(bool) return bool and "on" or "off" end
+
+--- Toggle auto format
+---@param silent? boolean if true then don't send a notification
+function M.autoformat(silent)
+  local format_on_save = get_config().formatting.format_on_save --[[@as CrownLSPFormatOnSaveOpts]]
+  format_on_save.enabled = not format_on_save.enabled
+  ui_notify(silent, ("Global autoformatting %s"):format(bool2str(format_on_save.enabled)))
+end
+
+--- Toggle buffer local auto format
+---@param bufnr? integer The buffer to toggle the autoformatting of, default the current buffer
+---@param silent? boolean if true then don't send a notification
+function M.buffer_autoformat(bufnr, silent)
+  bufnr = bufnr or 0
+  local crownlsp = require "crownlsp"
+  local old_val = vim.b[bufnr].autoformat
+  if not crownlsp.autoformat_available(bufnr) then
+    ui_notify(silent, "No LSP attached with auto formatting")
+    return
+  end
+  if old_val == nil then old_val = crownlsp.autoformat_enabled(bufnr) end
+  vim.b[bufnr].autoformat = not old_val
+  ui_notify(silent, ("Buffer autoformatting %s"):format(bool2str(vim.b[bufnr].autoformat)))
+end
+
+--- Toggle buffer LSP inlay hints
+---@param bufnr? integer the buffer to toggle the clients on
+---@param silent? boolean if true then don't send a notification
+function M.buffer_inlay_hints(bufnr, silent)
+  if vim.lsp.inlay_hint then
+    local filter = { bufnr = bufnr or 0 }
+    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled(filter), filter)
+    ui_notify(silent, ("Buffer inlay hints %s"):format(bool2str(vim.lsp.inlay_hint.is_enabled(filter))))
+  end
+end
+
+--- Toggle global LSP inlay hints
+---@param silent? boolean if true then don't send a notification
+function M.inlay_hints(silent)
+  if vim.lsp.inlay_hint then
+    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+    ui_notify(silent, ("Global inlay hints %s"):format(bool2str(vim.lsp.inlay_hint.is_enabled())))
+  end
+end
+
+--- Toggle buffer semantic token highlighting for all language servers that support it
+---@param bufnr? integer the buffer to toggle the clients on
+---@param silent? boolean if true then don't send a notification
+function M.buffer_semantic_tokens(bufnr, silent)
+  bufnr = bufnr or 0
+  if get_config().features.semantic_tokens == false then
+    ui_notify(silent, "Semantic token highlighting is disabled globally", vim.log.levels.WARN)
+    return
+  end
+  if vim.lsp.semantic_tokens.enable then
+    vim.lsp.semantic_tokens.enable(not vim.lsp.semantic_tokens.is_enabled { bufnr = bufnr }, { bufnr = bufnr })
+    vim.lsp.semantic_tokens.force_refresh(bufnr)
+    ui_notify(
+      silent,
+      ("Buffer lsp semantic highlighting %s"):format(bool2str(vim.lsp.semantic_tokens.is_enabled { bufnr = bufnr }))
+    )
+  else -- TODO: remove when dropping support for Neovim v0.11
+    vim.b[bufnr].semantic_tokens = not vim.b[bufnr].semantic_tokens
+    local toggled = false
+    for _, client in ipairs(vim.lsp.get_clients { bufnr = bufnr }) do
+      if client:supports_method("textDocument/semanticTokens/full", bufnr) then
+        vim.lsp.semantic_tokens[vim.b[bufnr].semantic_tokens and "start" or "stop"](bufnr, client.id)
+        toggled = true
+      end
+    end
+    if toggled then vim.lsp.semantic_tokens.force_refresh(bufnr) end
+    ui_notify(silent, ("Buffer lsp semantic highlighting %s"):format(bool2str(vim.b[bufnr].semantic_tokens)))
+  end
+end
+
+--- Toggle global semantic token highlighting for all language servers that support it
+---@param silent? boolean if true then don't send a notification
+function M.semantic_tokens(silent)
+  if not vim.lsp.semantic_tokens.enable then
+    ui_notify(silent, "Only available in Neovim v0.12+", vim.log.levels.WARN)
+    return
+  end
+  vim.lsp.semantic_tokens.enable(not vim.lsp.semantic_tokens.is_enabled())
+  get_config().features.semantic_tokens = vim.lsp.semantic_tokens.is_enabled()
+  vim.lsp.semantic_tokens.force_refresh()
+  ui_notify(silent, ("Global lsp semantic highlighting %s"):format(bool2str(vim.lsp.semantic_tokens.is_enabled())))
+end
+
+--- Toggle buffer codelens
+---@param bufnr? integer the buffer to toggle the clients on
+---@param silent? boolean if true then don't send a notification
+function M.buffer_codelens(bufnr, silent)
+  bufnr = bufnr or 0
+  if not vim.lsp.codelens.enable then
+    ui_notify(silent, "Only available in Neovim v0.12+", vim.log.levels.WARN)
+    return
+  end
+  vim.lsp.codelens.enable(not vim.lsp.codelens.is_enabled { bufnr = bufnr }, { bufnr = bufnr })
+  ui_notify(silent, ("CodeLens %s"):format(bool2str(vim.lsp.codelens.is_enabled { bufnr = bufnr })))
+end
+
+--- Toggle global codelens
+---@param silent? boolean if true then don't send a notification
+function M.codelens(silent)
+  -- TODO: remove check when dropping support for Neovim v0.11
+  if vim.lsp.codelens.enable then
+    vim.lsp.codelens.enable(not vim.lsp.codelens.is_enabled())
+    ui_notify(silent, ("CodeLens %s"):format(bool2str(vim.lsp.codelens.is_enabled())))
+  else
+    local features = get_config().features --[[@as CrownLSPFeatureOpts]]
+    features.codelens = not features.codelens
+    if not features.codelens then vim.lsp.codelens.clear() end
+    ui_notify(silent, ("CodeLens %s"):format(bool2str(features.codelens)))
+  end
+end
+
+--- Toggle automatic signature help
+---@param silent? boolean if true then don't send a notification
+function M.signature_help(silent)
+  local config = get_config()
+  config.features.signature_help = not config.features.signature_help
+  ui_notify(silent, ("Global signature help %s"):format(bool2str(config.features.signature_help)))
+end
+
+--- Toggle buffer local automatic signature help
+---@param bufnr? integer The buffer to toggle the auto signature help of, default the current buffer
+---@param silent? boolean if true then don't send a notification
+function M.buffer_signature_help(bufnr, silent)
+  bufnr = bufnr or 0
+  local config = get_config()
+  local old_val = vim.b[bufnr].signature_help
+  if old_val == nil then old_val = config.features.signature_help end
+  if not next(vim.b[bufnr].signature_help_triggerCharacters or {}) then
+    ui_notify(silent, "No LSP attached with signature help triggers")
+    return
+  end
+  vim.b[bufnr].signature_help = not old_val
+  ui_notify(silent, ("Buffer signature help %s"):format(bool2str(vim.b[bufnr].signature_help)))
+end
+
+return M

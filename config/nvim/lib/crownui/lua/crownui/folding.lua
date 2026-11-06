@@ -1,0 +1,147 @@
+-- CrownVim Folding Utilities
+--
+-- Helper functions for configuring folding in Neovim
+--
+-- This module can be loaded with `local crown = require "crownui.folding"`
+--
+-- copyright 2024
+-- license GNU General Public License v3.0
+local M = {}
+
+local config = require("crownui").config.folding
+
+local is_setup = false
+local lsp_bufs = {}
+
+local fold_methods = {
+  lsp = function(lnum, bufnr)
+    if lsp_bufs[bufnr or vim.api.nvim_get_current_buf()] then return vim.lsp.foldexpr(lnum) end
+  end,
+  treesitter = function(lnum, bufnr)
+    local treesitter = require "crowncore.treesitter"
+    if treesitter.has_parser(bufnr, "folds") and treesitter.is_enabled(bufnr) then
+      return vim.treesitter.foldexpr(lnum)
+    end
+  end,
+  indent = function(lnum, bufnr)
+    if not lnum then lnum = vim.v.lnum end
+    if not bufnr then bufnr = vim.api.nvim_get_current_buf() end
+    local shiftwidth = vim.bo[bufnr].shiftwidth
+    if shiftwidth == 0 then shiftwidth = vim.bo[bufnr].tabstop end
+    return vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, false)[1]:match "^%s*$" and "="
+      or math.floor(vim.fn.indent(lnum) / shiftwidth)
+  end,
+}
+
+--- Check if folding is enabled for a buffer
+---@param bufnr integer The buffer to check (defaults to current buffer)
+---@return boolean enabled whether or not the buffer is enabled for folding
+function M.is_enabled(bufnr)
+  local enabled = config and config.enabled
+  if type(enabled) == "function" then enabled = enabled(bufnr or vim.api.nvim_get_current_buf()) end
+  return enabled == true
+end
+
+--- Refresh LSP folding availability for a buffer
+---@param bufnr? integer The buffer to refresh (defaults to the current buffer)
+function M.refresh(bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  if not vim.api.nvim_buf_is_valid(bufnr) then return end
+  for _, client in pairs(vim.lsp.get_clients { bufnr = bufnr }) do
+    if client:supports_method("textDocument/foldingRange", bufnr) then
+      lsp_bufs[bufnr] = true
+      return
+    end
+  end
+  lsp_bufs[bufnr] = nil
+end
+
+--- A fold expression for doing LSP and Treesitter based folding
+---@param lnum? integer the current line number
+---@return string foldlevel the calculated fold level
+function M.foldexpr(lnum)
+  if not is_setup then M.setup() end
+  local bufnr = vim.api.nvim_get_current_buf()
+  if M.is_enabled(bufnr) then
+    for _, method in ipairs(config and config.methods or {}) do
+      local fold_method = fold_methods[method]
+      if fold_method then
+        local fold = fold_method(lnum, bufnr)
+        if fold then return fold end
+      end
+    end
+  end
+  -- fallback to no folds
+  return "0"
+end
+
+--- Get the current folding status of a given buffer
+---@param bufnr? integer the buffer to check the folding status for
+function M.info(bufnr)
+  if not bufnr then bufnr = vim.api.nvim_get_current_buf() end
+  local lines = {}
+  local enabled = M.is_enabled(bufnr)
+  table.insert(lines, "Buffer folding is **" .. (enabled and "Enabled" or "Disabled") .. "**\n")
+  local methods = config and config.methods or {}
+  for _, method in pairs(methods) do
+    local fold_method = fold_methods[method]
+    local available = "Unavailable"
+    local surround = ""
+    if not fold_method then
+      available = "*Invalid*"
+    elseif fold_method(1, bufnr) then
+      available = "Available"
+      if enabled then
+        surround = "**"
+        enabled = false
+      end
+    end
+    table.insert(lines, ("%s`%s`: %s%s"):format(surround, method, available, surround))
+  end
+  table.insert(lines, "```lua")
+  table.insert(lines, "methods = " .. vim.inspect(methods))
+  table.insert(lines, "```")
+  require("crowncore").notify(table.concat(lines, "\n"), vim.log.levels.INFO, { title = "CrownVim Folding" })
+end
+
+function M.setup()
+  vim.api.nvim_create_user_command("CrownFoldInfo", function() M.info() end, { desc = "Display folding information" })
+  local augroup = vim.api.nvim_create_augroup("crownui_foldexpr", { clear = true })
+  vim.api.nvim_create_autocmd("LspAttach", {
+    desc = "Monitor attached LSP clients with fold providers",
+    group = augroup,
+    callback = function(args) M.refresh(args.buf) end,
+  })
+  vim.api.nvim_create_autocmd("LspDetach", {
+    group = augroup,
+    desc = "Safely remove LSP folding providers when language servers detach",
+    callback = function(args)
+      if not vim.api.nvim_buf_is_valid(args.buf) then return end
+      for _, client in pairs(vim.lsp.get_clients { bufnr = args.buf }) do
+        if client.id ~= args.data.client_id and client:supports_method("textDocument/foldingRange", args.buf) then
+          return
+        end
+      end
+      lsp_bufs[args.buf] = nil
+    end,
+  })
+  vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout" }, {
+    group = augroup,
+    desc = "Remove LSP folding providers for deleted buffers",
+    callback = function(args) lsp_bufs[args.buf] = nil end,
+  })
+  vim.api.nvim_create_autocmd("User", {
+    pattern = "CrownLspCapability",
+    group = augroup,
+    desc = "Refresh folding providers after LSP capability changes",
+    callback = function(args)
+      local data = args.data
+      if type(data) == "table" and type(data.client_id) == "number" and type(data.bufnr) == "number" then
+        M.refresh(data.bufnr)
+      end
+    end,
+  })
+  is_setup = true
+end
+
+return M
