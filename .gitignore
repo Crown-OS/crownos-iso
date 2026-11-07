@@ -6,3 +6,4 @@
 /profile/airootfs/root/.config/
 /.playwright-mcp/
 /profile/airootfs/home/crownos-live/.config/
+/profile/airootfs/etc/pacman.conf

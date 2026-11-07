@@ -27,3 +27,15 @@ fish
 starship
 fastfetch
 chromium
+# Graphics drivers crownos-installer adds for the GPUs it detects: the 32-bit
+# drivers Steam and Wine need, the NVIDIA open modules built for linux-cachyos,
+# and the hybrid-graphics tools.
+lib32-mesa
+lib32-vulkan-intel
+lib32-vulkan-nouveau
+lib32-vulkan-radeon
+linux-cachyos-nvidia-open
+nvidia-utils
+lib32-nvidia-utils
+nvidia-prime
+switcheroo-control

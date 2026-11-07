@@ -5,4 +5,11 @@
         "crownos-polkit-agent",
         "crownos-theme-engine watch",
     ],
+    // Proton games are X11 windows and cannot ask to tear, so this rule asks
+    // for them. Displays left unconfigured run VRR OnDemand: on while a game
+    // or a fullscreen window is showing.
+    window_rules: [
+        (app_id: "^steam_app_", tearing: true, vrr: true),
+    ],
+    gaming: (allow_tearing: true),
 )

@@ -25,6 +25,7 @@ nvim
 ntfs-3g
 parted
 polkit
+power-profiles-daemon
 starship
 sudo
 ttf-dejavu

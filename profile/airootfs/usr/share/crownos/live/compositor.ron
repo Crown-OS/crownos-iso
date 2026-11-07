@@ -13,5 +13,7 @@
     ],
     window_rules: [
         (app_id: "^crownos-installer$", fullscreen: true),
+        (app_id: "^steam_app_", tearing: true, vrr: true),
     ],
+    gaming: (allow_tearing: true),
 )
