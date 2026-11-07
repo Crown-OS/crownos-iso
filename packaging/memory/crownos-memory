@@ -1,0 +1,139 @@
+#!/bin/sh
+# Sizes compressed memory (zram) and the swap partition of an installed
+# system. `status` reads without privileges; Settings runs the rest through
+# pkexec. crownos-installer writes the zram config, and puts the swap
+# partition right behind a btrfs root so the boundary between them can move
+# while both are in use.
+set -eu
+
+zram_conf=/etc/systemd/zram-generator.conf
+zram_setup=systemd-zram-setup@zram0.service
+zram_swap=dev-zram0.swap
+mib=1048576
+min_zram_percent=10
+max_zram_percent=100
+min_swap_mib=1024
+max_swap_mib=65536
+root_headroom_mib=10240
+
+die() {
+    echo "${0##*/}: $*" >&2
+    exit 1
+}
+
+require_whole_number() {
+    case $1 in
+    '' | *[!0-9]* | 0?*) die "not a whole number: $1" ;;
+    esac
+}
+
+zram_percent() {
+    sed -n 's|^zram-size *= *ram *\* *\([0-9]\{1,\}\) */ *100 *$|\1|p' "$zram_conf" 2>/dev/null
+}
+
+# Positions are in bytes. Succeeds only for an active swap partition that
+# starts where a btrfs root ends.
+find_swap() {
+    [ "$(findmnt -no FSTYPE /)" = btrfs ] || return 1
+    root=$(findmnt -nvo SOURCE /)
+    root_sys=$(readlink -f "/sys/class/block/${root##*/}")
+    [ -r "$root_sys/partition" ] || return 1
+    disk_sys=${root_sys%/*}
+    disk=/dev/${disk_sys##*/}
+    root_num=$(cat "$root_sys/partition")
+    root_start=$(($(cat "$root_sys/start") * 512))
+    root_end=$((root_start + $(cat "$root_sys/size") * 512))
+    for part_sys in "$disk_sys"/*/partition; do
+        part_sys=${part_sys%/partition}
+        [ $(($(cat "$part_sys/start") * 512)) -eq "$root_end" ] || continue
+        swap=/dev/${part_sys##*/}
+        grep -q "^$swap " /proc/swaps || return 1
+        swap_num=$(cat "$part_sys/partition")
+        swap_start=$root_end
+        swap_end=$((swap_start + $(cat "$part_sys/size") * 512))
+        return 0
+    done
+    return 1
+}
+
+swap_limit_mib() {
+    root_free_mib=$(df -m --output=avail / | tail -n 1)
+    swap_mib=$(((swap_end - swap_start) / mib))
+    limit=$((swap_mib + root_free_mib - root_headroom_mib))
+    [ "$limit" -le "$max_swap_mib" ] || limit=$max_swap_mib
+    [ "$limit" -ge "$swap_mib" ] || limit=$swap_mib
+    echo "$limit"
+}
+
+status() {
+    echo "ram_mib=$(($(sed -n 's/^MemTotal: *\([0-9]*\) kB$/\1/p' /proc/meminfo) / 1024))"
+    echo "zram_percent=$(zram_percent)"
+    find_swap || return 0
+    echo "swap_mib=$(((swap_end - swap_start) / mib))"
+    echo "swap_max_mib=$(swap_limit_mib)"
+}
+
+set_zram() {
+    require_whole_number "$1"
+    [ -n "$(zram_percent)" ] || die "compressed memory is set up when CrownOS is installed"
+    [ "$1" -ge "$min_zram_percent" ] && [ "$1" -le "$max_zram_percent" ] ||
+        die "zram size must be $min_zram_percent-$max_zram_percent% of memory"
+    sed -i "s|^zram-size *=.*|zram-size = ram * $1 / 100|" "$zram_conf"
+    systemctl daemon-reload
+    systemctl restart "$zram_setup"
+    systemctl start "$zram_swap"
+}
+
+set_partition() {
+    echo "$2" | sfdisk --quiet --no-reread --no-tell-kernel --wipe-partitions never -N "$1" "$disk"
+    udevadm settle
+}
+
+move_swap() {
+    swapoff "$swap"
+    set_partition "$swap_num" "start=$((new_swap_start / sector)), size=$(((swap_end - new_swap_start) / sector))"
+    partx --delete --nr "$swap_num" "$disk"
+    partx --add --nr "$swap_num" "$disk"
+    udevadm settle
+    mkswap --quiet --uuid "$uuid" --label crownos-swap "$swap"
+    swapon "$swap"
+}
+
+resize_root() {
+    new_root_bytes=$((new_swap_start - root_start))
+    set_partition "$root_num" "size=$((new_root_bytes / sector))"
+    resizepart "$disk" "$root_num" $((new_root_bytes / 512))
+}
+
+set_swap() {
+    require_whole_number "$1"
+    find_swap || die "this system has no swap partition behind its root partition"
+    limit=$(swap_limit_mib)
+    [ "$1" -ge "$min_swap_mib" ] && [ "$1" -le "$limit" ] ||
+        die "swap must be ${min_swap_mib}-${limit} MiB"
+    uuid=$(blkid -s UUID -o value "$swap")
+    [ -n "$uuid" ] || die "$swap has no swap signature to keep"
+    sector=$(cat "/sys/block/${disk##*/}/queue/logical_block_size")
+    new_swap_start=$((swap_end - $1 * mib))
+    [ "$new_swap_start" -ne "$swap_start" ] || return 0
+    trap 'swapon "$swap" 2>/dev/null || true' EXIT
+    if [ "$new_swap_start" -lt "$swap_start" ]; then
+        btrfs filesystem resize "$(((new_swap_start - root_start) / mib))m" /
+        resize_root
+        move_swap
+    else
+        move_swap
+        resize_root
+        btrfs filesystem resize max /
+    fi
+}
+
+case "${1-}" in
+status) status ;;
+zram) set_zram "${2:?percent}" ;;
+swap) set_swap "${2:?MiB}" ;;
+*)
+    echo "usage: ${0##*/} status | zram <percent> | swap <MiB>" >&2
+    exit 64
+    ;;
+esac

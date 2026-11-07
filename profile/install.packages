@@ -22,6 +22,7 @@ yay
 flatpak
 networkmanager
 sudo
+zram-generator
 fish
 starship
 fastfetch

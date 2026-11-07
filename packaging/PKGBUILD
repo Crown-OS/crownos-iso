@@ -27,12 +27,12 @@ package() {
     install -Dm644 -t "$pkgdir/usr/share/backgrounds/crownos" "$startdir"/backgrounds/*
     install -Dm644 -t "$pkgdir/usr/share/glib-2.0/schemas" "$startdir/90_crownos-theme.gschema.override"
     install -Dm644 -t "$pkgdir/usr/share/applications" "$startdir"/*.desktop
-    install -Dm644 -t "$pkgdir/usr/share/polkit-1/actions" "$startdir"/*.policy "$startdir/windows-apps/org.crownos.windows-apps.policy"
+    install -Dm644 -t "$pkgdir/usr/share/polkit-1/actions" "$startdir"/*.policy "$startdir/windows-apps/org.crownos.windows-apps.policy" "$startdir/memory/org.crownos.memory.policy"
     install -Dm644 -t "$pkgdir/usr/share/dbus-1/system.d" "$startdir/process-monitor/org.crownos.ProcessMonitor1.conf"
     install -Dm644 -t "$pkgdir/usr/share/dbus-1/system-services" "$startdir/process-monitor/org.crownos.ProcessMonitor1.service"
     install -Dm644 -t "$pkgdir/usr/lib/systemd/system" "$startdir/process-monitor/crownos-process-monitor-helper.service"
     install -Dm644 -t "$pkgdir/usr/lib/systemd/system" "$startdir/windows-apps/crownos-windows-apps.service"
-    install -Dm755 -t "$pkgdir/usr/bin" "$startdir/crownos-desktop" "$startdir/windows-apps/crownos-windows-apps"
+    install -Dm755 -t "$pkgdir/usr/bin" "$startdir/crownos-desktop" "$startdir/windows-apps/crownos-windows-apps" "$startdir/memory/crownos-memory"
     install -Dm644 -t "$pkgdir/usr/share/fish/vendor_conf.d" "$startdir/crownos-desktop.fish"
     install -Dm644 -t "$pkgdir/usr/share/fontconfig/conf.avail" "$startdir/60-crownos-inter.conf"
     install -d "$pkgdir/etc/fonts/conf.d"
