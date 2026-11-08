@@ -7,7 +7,7 @@ Crown-OS/crownpaper
 Crown-OS/crownos-settings
 Crown-OS/crownos-clipboard
 Crown-OS/crowndictator
-Crown-OS/crownconnect-linux
+Crown-OS/crownlink-linux
 Crown-OS/crownlauncher
 Crown-OS/crownos-screencapture
 Crown-OS/crownos-appstore
