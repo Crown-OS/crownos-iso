@@ -1,0 +1,19 @@
+# shellcheck shell=bash disable=SC2034,SC2154
+# The key that signs the CrownOS repository. scripts/export-key.sh writes
+# crownos.gpg, crownos-trusted and crownos-revoked beside this file.
+
+pkgname=crownos-keyring
+pkgver=${CROWNOS_VERSION:?}
+pkgrel=1
+pkgdesc="CrownOS package signing keys"
+arch=(any)
+url="https://github.com/Crown-OS/crownos-iso"
+license=(MIT)
+options=(!debug)
+install=crownos-keyring.install
+source=(crownos.gpg crownos-trusted crownos-revoked)
+sha256sums=('SKIP' 'SKIP' 'SKIP')
+
+package() {
+  install -Dm644 crownos.gpg crownos-trusted crownos-revoked -t "$pkgdir/usr/share/pacman/keyrings"
+}

@@ -1,0 +1,11 @@
+# Mounts drives for the signed-in user as they appear, from crownos-diskmanager.
+# The live image has /run/archiso and leaves every disk free for the installer.
+
+[Unit]
+Description=Mount drives when they appear
+ConditionPathExists=!/run/archiso
+
+[Service]
+ExecStart=/usr/bin/crownos-automount
+Restart=on-failure
+RestartSec=5

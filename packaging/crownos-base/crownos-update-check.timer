@@ -1,0 +1,10 @@
+[Unit]
+Description=Check for a new CrownOS release daily
+
+[Timer]
+OnStartupSec=15min
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target

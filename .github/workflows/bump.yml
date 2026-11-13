@@ -1,0 +1,88 @@
+# Opens a pull request pinning a component release in components.toml when the
+# component's package workflow dispatches component-updated with
+# client_payload { repo, tag, asset, sha256 }. An older payload carrying only
+# { repository } pins that repository's latest release. scripts/pin.sh always
+# downloads and hashes the asset itself: a sha256 that differs fails the run.
+# Every other package the manifest takes from that repository is pinned to the
+# same release afterwards.
+#
+# Secrets:
+#   CROWNOS_BOT_TOKEN      contents and pull-requests write on this repository; a
+#                          pull request opened with it runs the check job, one
+#                          opened with GITHUB_TOKEN does not
+#   CROWNOS_SOURCES_TOKEN  read access to component releases, if any repository is private
+
+name: Bump
+
+on:
+  repository_dispatch:
+    types: [component-updated]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: bump-${{ github.event.client_payload.repo || github.event.client_payload.repository }}
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    env:
+      REPO: ${{ github.event.client_payload.repo || github.event.client_payload.repository }}
+      TAG: ${{ github.event.client_payload.tag }}
+      ASSET: ${{ github.event.client_payload.asset }}
+      SHA256: ${{ github.event.client_payload.sha256 }}
+    steps:
+      - name: Toolchain
+        run: pacman -Syu --noconfirm --needed github-cli git python jq libarchive
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.CROWNOS_BOT_TOKEN || github.token }}
+      - name: Pin the release
+        env:
+          GH_TOKEN: ${{ secrets.CROWNOS_SOURCES_TOKEN || github.token }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -z "$REPO" ]; then
+            echo "::error::the dispatch names no repository"
+            exit 1
+          fi
+          case $REPO in */*) ;; *) REPO=Crown-OS/$REPO ;; esac
+          echo "REPO=$REPO" >> "$GITHUB_ENV"
+          if [ -n "$TAG" ] && [ -n "$ASSET" ] && [ -n "$SHA256" ]; then
+            scripts/pin.sh "$REPO" "$TAG" "$ASSET" "$SHA256"
+            # A release carrying more packages than the dispatched one (snapd on
+            # crownos-appstore) moves as a whole, or gate.sh reads the pair left
+            # on the old tag as stale.
+            scripts/pin.sh "$REPO" "$TAG"
+          elif [ -n "$TAG" ]; then
+            scripts/pin.sh "$REPO" "$TAG"
+          else
+            scripts/pin.sh --latest "$REPO"
+          fi
+      - name: Open a pull request
+        env:
+          GH_TOKEN: ${{ secrets.CROWNOS_BOT_TOKEN || github.token }}
+        run: |
+          if git diff --quiet -- components.toml; then
+            echo "$REPO is already pinned at this release."
+            exit 0
+          fi
+          tag=$(python3 -I scripts/toml.py json components.toml \
+            | jq -r --arg repo "$REPO" 'first(.package[] | select(.repo == $repo)) | .tag')
+          branch="bump/${REPO##*/}-$tag"
+          title="Pin $REPO $tag"
+          git switch -c "$branch"
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "$title" -- components.toml
+          git push --force origin "$branch"
+          body=$(printf 'Pins %s %s in components.toml.\n\nMerging publishes it to the testing channel; installed systems get it with the next ISO tag.\n' "$REPO" "$tag")
+          gh pr create --base main --head "$branch" --title "$title" --body "$body" \
+            || echo "A pull request for $branch already exists; the push updated it."

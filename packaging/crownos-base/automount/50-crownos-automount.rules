@@ -1,0 +1,9 @@
+// Administrators signed in at the machine mount internal disks without a
+// password, so crownos-automount can mount them at sign-in. Removable drives
+// need no rule: udisks2 already lets the active user mount those.
+polkit.addRule(function (action, subject) {
+    if (action.id === "org.freedesktop.udisks2.filesystem-mount-system" &&
+        subject.local && subject.active && subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+    }
+});

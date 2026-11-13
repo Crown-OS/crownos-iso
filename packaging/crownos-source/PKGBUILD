@@ -1,0 +1,21 @@
+# shellcheck shell=bash disable=SC2034,SC2154
+# Opt-in: builds CrownOS packages on this device with -march=native from the
+# PKGBUILDs scripts/gen-pkgbuilds.sh publishes to Crown-OS/crownos-pkgbuilds.
+
+pkgname=crownos-source
+pkgver=${CROWNOS_VERSION:?}
+pkgrel=1
+pkgdesc="Builds CrownOS packages from source on this device"
+arch=(any)
+url="https://github.com/Crown-OS/crownos-iso"
+license=(MIT)
+options=(!debug)
+depends=(paru)
+backup=(etc/makepkg.conf.d/crownos-native.conf)
+install=crownos-source.install
+source=(crownos-native.conf)
+sha256sums=('SKIP')
+
+package() {
+  install -Dm644 crownos-native.conf -t "$pkgdir/etc/makepkg.conf.d"
+}

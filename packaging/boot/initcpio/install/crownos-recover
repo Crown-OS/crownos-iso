@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+build() {
+    add_module btrfs
+    add_binary btrfs
+    add_binary date
+    add_runscript
+}
+
+help() {
+    cat <<HELPEOF
+Rolls the root back to the version before the last update when the kernel
+command line carries crownos.recover, which the "Recover the previous version"
+boot entry does. Place it after 'block' and before 'filesystems'.
+HELPEOF
+}

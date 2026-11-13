@@ -25,7 +25,7 @@ iso=$(realpath -- "${1:-$(newest_iso)}")
 [[ -f $iso ]] || die "no ISO to test; run \`just build\` first"
 
 machine=(
-    qemu-system-x86_64 -machine q35,accel=kvm:tcg -cpu max -m 4G -smp 4
+    qemu-system-x86_64 -machine "q35,accel=kvm:tcg" -cpu max -m 4G -smp 4
     -nic none -display none -no-reboot
     -drive "if=pflash,format=raw,readonly=on,file=$firmware/OVMF_CODE.4m.fd"
     -drive "if=pflash,format=raw,file=$work/vars.fd"
@@ -59,12 +59,48 @@ install_unattended() {
         die "the install failed; see $work/install.log"
 }
 
+# The installer ends by printing the recovery setup from inside the new system
+# (grep -H, btrfs subvolume get-default, ls of the ESP). Only that output is
+# matched: the logged commands never carry the path:content shape, and their
+# kernel paths follow a slash rather than the start of a line or a space.
+assert_installed_layout() {
+    local log=$work/install.log expected
+    local -a layout=(
+        '/efi/loader/loader.conf:timeout menu-hidden'
+        '/efi/loader/loader.conf:default crownos.conf'
+        '/efi/loader/entries/crownos-recover.conf:title   Recover the previous version'
+        '/etc/mkinitcpio.conf.d/crownos.conf:HOOKS=.*block crownos-recover filesystems .*'
+        '/etc/snapper/configs/root:NUMBER_LIMIT="10"'
+        'crownos-recover-finish.service enabled'
+        'path @'
+        'vmlinuz-linux-cachyos-previous'
+        'initramfs-linux-cachyos-previous.img'
+    )
+    for expected in "${layout[@]}"; do
+        grep -qE "(^|[[:space:]])${expected}[[:space:]]*$" "$log" ||
+            die "the installed system lacks \`$expected\`; see $log"
+    done
+    if grep -q 'loader.conf already exists' "$log"; then
+        die "the installer's loader.conf was not written; see $log"
+    fi
+}
+
+assert_booted_layout() {
+    local log=$work/boot.log
+    grep -q 'running hook \[crownos-recover\]' "$log" ||
+        die "the installed initramfs did not run crownos-recover; see $log"
+    if grep -a 'Command line:' "$log" | grep -qE 'crownos\.recover|subvol(id)?='; then
+        die "the default boot entry names recovery or a subvolume; see $log"
+    fi
+}
+
 boot_installed() {
     "${machine[@]}" -serial "file:$work/boot.log" &
     local vm=$! waited
     for ((waited = 0; waited < boot_timeout; waited += 5)); do
         if grep -qE 'Reached target .*(Multi-User System|Graphical Interface)' "$work/boot.log" 2>/dev/null; then
             kill "$vm"
+            assert_booted_layout
             return
         fi
         kill -0 "$vm" 2>/dev/null || break
@@ -78,6 +114,7 @@ prepare_disk
 extract_live_kernel
 printf 'installing %s\n' "${iso##*/}"
 install_unattended
+assert_installed_layout
 printf 'booting the installed system\n'
 boot_installed
 printf 'pass: %s installs offline and boots\n' "${iso##*/}"

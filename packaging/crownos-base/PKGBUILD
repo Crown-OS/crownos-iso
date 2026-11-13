@@ -1,0 +1,90 @@
+# shellcheck shell=bash disable=SC2034,SC2154
+# The CrownOS system defaults every install carries: the services the desktop
+# needs, the skel configs from config/, the CrownOS GTK and icon themes and
+# wallpapers, the launcher that opens the desktop when a user signs in on tty1,
+# the drive automounter's user unit and polkit rule, and the boot recovery files
+# from packaging/boot/. The components themselves are pinned in components.toml
+# and installed beside it, not pulled in here.
+# scripts/manifest.sh passes the version in CROWNOS_VERSION and the
+# crownos-icon-theme checkout in CROWNOS_ICON_THEME. /etc/default/useradd
+# belongs to shadow, so crownos-base.install sets the default shell through
+# useradd.
+
+pkgname=crownos-base
+pkgver=${CROWNOS_VERSION:?}
+pkgrel=1
+pkgdesc='CrownOS system defaults: services, themes, configs and boot recovery'
+arch=(any)
+url='https://github.com/Crown-OS/crownos-iso'
+license=(MIT)
+install=crownos-base.install
+options=(!debug)
+replaces=(crownos-desktop)
+conflicts=(crownos-desktop)
+mapfile -t depends < <(grep -Ev '^[[:space:]]*(#|$)' "$startdir/../desktop.depends")
+depends+=(snapper snap-pac)
+
+_config=$startdir/../../config
+_boot=$startdir/../boot
+[[ -e $_boot/snapper/root ]] && backup=(etc/snapper/configs/root)
+
+package() {
+    install -d "$pkgdir/usr/share/themes" "$pkgdir/usr/share/icons" "$pkgdir/etc/skel/.config"
+    cp -r --no-preserve=ownership -- "$_config/." "$pkgdir/etc/skel/.config/"
+    cp -r --no-preserve=ownership -- "$_config/gtk/." "$pkgdir/usr/share/themes/"
+    "${CROWNOS_ICON_THEME:?}/install.sh" --dest "$pkgdir/usr/share/icons"
+    install -Dm644 -t "$pkgdir/usr/share/backgrounds/crownos" "$startdir"/backgrounds/*
+    install -Dm644 -t "$pkgdir/usr/share/glib-2.0/schemas" "$startdir/90_crownos-theme.gschema.override"
+    install -Dm644 -t "$pkgdir/usr/share/applications" "$startdir"/*.desktop
+    install -Dm644 -t "$pkgdir/usr/share/libalpm/hooks" "$startdir"/*.hook
+    _package_appstore_data
+    _package_automount
+    install -Dm644 -t "$pkgdir/usr/share/polkit-1/actions" "$startdir"/*.policy "$startdir/windows-apps/org.crownos.windows-apps.policy" "$startdir/memory/org.crownos.memory.policy"
+    install -Dm644 -t "$pkgdir/usr/share/dbus-1/system.d" "$startdir/process-monitor/org.crownos.ProcessMonitor1.conf"
+    install -Dm644 -t "$pkgdir/usr/share/dbus-1/system-services" "$startdir/process-monitor/org.crownos.ProcessMonitor1.service"
+    install -Dm644 -t "$pkgdir/usr/lib/systemd/system" "$startdir/process-monitor/crownos-process-monitor-helper.service"
+    install -Dm644 -t "$pkgdir/usr/lib/systemd/system" "$startdir/windows-apps/crownos-windows-apps.service"
+    install -Dm755 -t "$pkgdir/usr/bin" "$startdir/crownos-desktop" "$startdir/windows-apps/crownos-windows-apps" "$startdir/memory/crownos-memory"
+    install -Dm644 -t "$pkgdir/usr/share/fish/vendor_conf.d" "$startdir/crownos-desktop.fish"
+    install -Dm644 -t "$pkgdir/usr/share/fontconfig/conf.avail" "$startdir/60-crownos-inter.conf"
+    install -d "$pkgdir/etc/fonts/conf.d"
+    ln -s /usr/share/fontconfig/conf.avail/60-crownos-inter.conf "$pkgdir/etc/fonts/conf.d/"
+    _package_boot_recovery
+}
+
+# The App Store's data files, until its release ships more than binaries
+# (docs/publishing.md). The timer is on for every user through timers.target.wants.
+_package_appstore_data() {
+    install -Dm644 -t "$pkgdir/usr/lib/systemd/user" "$startdir/crownos-update-check.service" "$startdir/crownos-update-check.timer"
+    install -d "$pkgdir/usr/lib/systemd/user/timers.target.wants"
+    ln -s ../crownos-update-check.timer "$pkgdir/usr/lib/systemd/user/timers.target.wants/crownos-update-check.timer"
+}
+
+# crownos-automount ships in crownos-diskmanager; it runs for every user
+# through default.target.wants.
+_package_automount() {
+    install -Dm644 -t "$pkgdir/usr/lib/systemd/user" "$startdir/automount/crownos-automount.service"
+    install -d "$pkgdir/usr/lib/systemd/user/default.target.wants"
+    ln -s ../crownos-automount.service "$pkgdir/usr/lib/systemd/user/default.target.wants/crownos-automount.service"
+    install -Dm644 -t "$pkgdir/usr/share/polkit-1/rules.d" "$startdir/automount/50-crownos-automount.rules"
+}
+
+_install_each() {
+    local mode=$1 destination=$2 file
+    shift 2
+    for file; do
+        install -Dm"$mode" -t "$pkgdir/$destination" "$file"
+    done
+}
+
+_package_boot_recovery() (
+    shopt -s nullglob
+    _install_each 644 usr/share/libalpm/hooks "$_boot"/hooks/*.hook
+    _install_each 644 usr/lib/initcpio/install "$_boot"/initcpio/install/*
+    _install_each 644 usr/lib/initcpio/hooks "$_boot"/initcpio/hooks/*
+    _install_each 755 usr/bin "$_boot"/bin/*
+    _install_each 644 usr/lib/systemd/system "$_boot"/systemd/*
+    if [[ -e $_boot/snapper/root ]]; then
+        install -Dm644 "$_boot/snapper/root" "$pkgdir/etc/snapper/configs/root"
+    fi
+)

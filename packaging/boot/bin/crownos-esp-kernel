@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+# Keeps the kernel and initramfs systemd-boot reads on the EFI partition, and
+# the copy "Recover the previous version" boots.
+#
+#   crownos-esp-kernel seed     current -> previous; fails when the current pair
+#                               is missing, and drops a copy it cannot refresh
+#   crownos-esp-kernel rotate   seed, run before every pacman transaction; never
+#                               fails one
+#   crownos-esp-kernel install  /boot/vmlinuz-$kernel -> the EFI partition
+#   crownos-esp-kernel restore  previous -> current, after a recovery boot;
+#                               never removes the current pair
+#
+# CROWNOS_ESP and CROWNOS_KERNEL override the EFI mount point and the kernel.
+
+set -euo pipefail
+
+kernel=${CROWNOS_KERNEL:-linux-cachyos}
+esp=${CROWNOS_ESP:-$(bootctl --print-esp-path 2>/dev/null || echo /efi)}
+dir=$esp/EFI/CrownOS
+
+warn() { printf 'crownos-esp-kernel: %s\n' "$*" >&2; }
+die() {
+    warn "$@"
+    exit 1
+}
+
+images() {
+    printf '%s\n' "$dir/vmlinuz-$kernel$1" "$dir/initramfs-$kernel$1.img"
+}
+
+total_size() {
+    local total=0 file
+    for file; do
+        if [[ -e $file ]]; then
+            total=$((total + $(stat -c %s -- "$file")))
+        fi
+    done
+    printf '%s\n' "$total"
+}
+
+free_bytes() {
+    df --output=avail -B1 -- "$esp" | tail -n 1 | tr -d ' '
+}
+
+require_esp() {
+    mountpoint -q -- "$esp" || die "$esp is not mounted; the EFI partition was left alone"
+}
+
+# Reads $sources and $targets. $1 is how many pair sizes must be free before
+# copying: one for the copy itself, two when the pair is being added rather
+# than replaced, so mkinitcpio can still rewrite the current initramfs
+# afterwards. With $2 = replace, the old pair may be removed to make room;
+# nothing is removed when even that would not be enough.
+make_room() {
+    local pairs=$1 removable=$2 need available replaced
+    need=$(total_size "${sources[@]}")
+    available=$(free_bytes)
+    replaced=$(total_size "${targets[@]}")
+    if ((available >= pairs * need)); then
+        return 0
+    fi
+    if [[ $removable == replace ]] && ((available + replaced >= pairs * need)); then
+        warn "removing the previous copy to make room"
+        rm -f -- "${targets[@]}"
+        return 0
+    fi
+    return 1
+}
+
+# Copies the pair with suffix $1 over the pair with suffix $2; $3 is `adding`
+# for current -> previous and `replacing` for previous -> current.
+#   0  copied, or already identical
+#   2  no room
+#   3  the source pair is incomplete
+#   4  the copy failed; no half-written file is left, but the target pair may
+#      be stale or mismatched
+copy_pair() {
+    local from=$1 to=$2 how=$3 index
+    mapfile -t sources < <(images "$from")
+    mapfile -t targets < <(images "$to")
+    [[ -e ${sources[0]} && -e ${sources[1]} ]] || return 3
+    if cmp -s -- "${sources[0]}" "${targets[0]}" && cmp -s -- "${sources[1]}" "${targets[1]}"; then
+        printf 'the %s%s pair is unchanged\n' "$kernel" "$to"
+        return 0
+    fi
+    case $how in
+    adding) make_room 2 replace || return 2 ;;
+    replacing) make_room 1 keep || return 2 ;;
+    esac
+    for index in 0 1; do
+        if ! cp -- "${sources[index]}" "${targets[index]}.tmp"; then
+            rm -f -- "${targets[0]}.tmp" "${targets[1]}.tmp"
+            return 4
+        fi
+    done
+    for index in 0 1; do
+        if ! mv -f -- "${targets[index]}.tmp" "${targets[index]}"; then
+            rm -f -- "${targets[0]}.tmp" "${targets[1]}.tmp"
+            return 4
+        fi
+    done
+}
+
+# A recovery copy that no longer matches the current system is worse than none:
+# the recovery entry would boot it against a root it was never installed on.
+drop_previous() {
+    local -a previous
+    mapfile -t previous < <(images "-previous")
+    rm -f -- "${previous[@]}" "${previous[0]}.tmp" "${previous[1]}.tmp"
+    die "$1; 'Recover the previous version' is unavailable until the next update"
+}
+
+seed() {
+    require_esp
+    local status=0
+    copy_pair "" "-previous" adding || status=$?
+    case $status in
+    0) ;;
+    2) drop_previous "the EFI partition is too small to keep a recovery copy" ;;
+    3) die "the current kernel pair is missing from $dir; there is nothing to keep for recovery" ;;
+    *) drop_previous "copying the current kernel pair failed" ;;
+    esac
+}
+
+rotate() {
+    (seed) || warn "the recovery copy was not refreshed; this transaction continues"
+}
+
+install_kernel() {
+    require_esp
+    install -Dm644 -- "/boot/vmlinuz-$kernel" "$dir/vmlinuz-$kernel"
+}
+
+restore() {
+    require_esp
+    local status=0
+    copy_pair "-previous" "" replacing || status=$?
+    case $status in
+    0) ;;
+    2) die "the EFI partition has no room to restore the previous kernel" ;;
+    3) die "there is no complete previous kernel pair in $dir to restore" ;;
+    *) die "restoring the previous kernel pair failed; $dir may hold a mismatched pair" ;;
+    esac
+}
+
+case ${1:-} in
+seed) seed ;;
+rotate) rotate ;;
+install) install_kernel ;;
+restore) restore ;;
+*)
+    printf 'usage: %s seed|rotate|install|restore\n' "${0##*/}" >&2
+    exit 64
+    ;;
+esac

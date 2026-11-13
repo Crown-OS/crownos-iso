@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=App Store Updates
+Comment=Open the App Store on its updates
+Exec=crownos-appstore --page updates
+Icon=system-software-install
+Terminal=false
+NoDisplay=true
+Categories=System;PackageManager;

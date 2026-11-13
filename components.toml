@@ -1,0 +1,177 @@
+# Written by scripts/toml.py: comments are not preserved and scripts/pin.sh
+# rewrites this file. Change it with pin.sh or keep edits to plain values.
+
+[[package]]
+name = "crownos-installer"
+repo = "Crown-OS/crownos-installer"
+tag = "v0.3.0"
+asset = "crownos-installer-0.3.0-1-x86_64.pkg.tar.zst"
+sha256 = "66d7eb38d28beae940457a27354bb4421f0868dbd4a1f45f960575bdb5ec2f29"
+install = "live"
+
+[[package]]
+name = "crownpositor"
+repo = "Crown-OS/crownpositor"
+tag = "v0.2.0"
+asset = "crownpositor-0.2.0-1-x86_64.pkg.tar.zst"
+sha256 = "f56b733c011a7bc9c8dcb7528751df39a5cc19659673019dc5630933ccafa286"
+
+[[package]]
+name = "crownbar"
+repo = "Crown-OS/crownbar"
+tag = "v0.3.0"
+asset = "crownbar-0.3.0-1-x86_64.pkg.tar.zst"
+sha256 = "01854019bf007728ebba88d420d76682f659fb7e458639b0237424dba5bb7c6a"
+
+[[package]]
+name = "crowndock"
+repo = "Crown-OS/crowndock"
+tag = "v0.2.0"
+asset = "crowndock-0.2.0-1-x86_64.pkg.tar.zst"
+sha256 = "b7912920ad1f49d09334026c34d7512a8a845914b0f87362a17d2c601504a7c8"
+
+[[package]]
+name = "crownotify"
+repo = "Crown-OS/crownotify"
+tag = "v0.1.0"
+asset = "crownotify-0.1.0-1-x86_64.pkg.tar.zst"
+sha256 = "ed5797a094abc38808b637536a9c503c199dd27487c173d202354c6eace160cb"
+
+[[package]]
+name = "crownpaper"
+repo = "Crown-OS/crownpaper"
+tag = "v1.1.0"
+asset = "crownpaper-1.1.0-1-x86_64.pkg.tar.zst"
+sha256 = "5be77a1af98fe19258227cf35219740c4d7aecf76ca87699dc94bc65fb61701b"
+
+[[package]]
+name = "crownos-settings"
+repo = "Crown-OS/crownos-settings"
+tag = "v0.2.0"
+asset = "crownos-settings-0.2.0-1-x86_64.pkg.tar.zst"
+sha256 = "4794f4c798480e7b79bced562408229001137de1b64acf51d1b5bda742172609"
+
+[[package]]
+name = "crownos-clipboard"
+repo = "Crown-OS/crownos-clipboard"
+tag = "v0.1.0"
+asset = "crownos-clipboard-0.1.0-1-x86_64.pkg.tar.zst"
+sha256 = "14099e6e3465fa8c2caede1c5d1a4052d863ba5cff2f394a8146fb8c7e8dddbd"
+
+[[package]]
+name = "crowndictator"
+repo = "Crown-OS/crowndictator"
+tag = "v0.2.0"
+asset = "crowndictator-0.2.0-1-x86_64.pkg.tar.zst"
+sha256 = "4a3af00687d3881a726fb5c2fac2357e8b822a158dbde7fc5a073b60ba625a29"
+
+[[package]]
+name = "crownlink-linux"
+repo = "Crown-OS/crownlink-linux"
+tag = "v0.1.1"
+asset = "crownlink-linux-0.1.1-1-x86_64.pkg.tar.zst"
+sha256 = "76a0ab1238afe29ae6af8bfe09a9c130e348765a05a7c7b02daedc8f10ba86a6"
+
+[[package]]
+name = "crownlauncher"
+repo = "Crown-OS/crownlauncher"
+tag = "v0.4.0"
+asset = "crownlauncher-0.4.0-1-x86_64.pkg.tar.zst"
+sha256 = "4ed0f954324196bf31c2dfda12d3897ebdad4fd4cf348090504288333429c35f"
+
+[[package]]
+name = "crownos-screencapture"
+repo = "Crown-OS/crownos-screencapture"
+tag = "v0.2.0"
+asset = "crownos-screencapture-0.2.0-1-x86_64.pkg.tar.zst"
+sha256 = "5736a6dca7110e967f82f6fe137196d745e1176a8ac18437ec74309a2e35b82b"
+
+[[package]]
+name = "crownos-appstore"
+repo = "Crown-OS/crownos-appstore"
+tag = "v0.1.2"
+asset = "crownos-appstore-0.1.2-1-x86_64.pkg.tar.zst"
+sha256 = "ac48187f6e59cea506c7ade4cdfb8cc99f202db0d8d28a1336313fb193256146"
+
+[[package]]
+name = "snapd"
+repo = "Crown-OS/crownos-appstore"
+tag = "v0.1.2"
+asset = "snapd-2.78-1-x86_64.pkg.tar.zst"
+sha256 = "8219597b30016ad99527d22786a9b19796f9962ee1fa2b4836490910df6fe6c1"
+pkgbuild = "packaging/snapd/PKGBUILD"
+
+[[package]]
+name = "crownos-polkit-agent"
+repo = "Crown-OS/crownos-polkit-agent"
+tag = "v0.1.0"
+asset = "crownos-polkit-agent-0.1.0-1-x86_64.pkg.tar.zst"
+sha256 = "495459c830cea95f4f0dcfa45dbb68d698cb77d5b55d83c6b6faefaaf7128aa1"
+
+[[package]]
+name = "crownos-diskmanager"
+repo = "Crown-OS/crownos-diskmanager"
+tag = "v0.2.0"
+asset = "crownos-diskmanager-0.2.0-1-x86_64.pkg.tar.zst"
+sha256 = "5c8dbd9c58b8bb4847af092221689e9c2c64bcce582feb2a5e4d9e3dc93e4169"
+
+[[package]]
+name = "crownos-files"
+repo = "Crown-OS/crownos-files"
+tag = "v0.2.0"
+asset = "crownos-files-0.2.0-1-x86_64.pkg.tar.zst"
+sha256 = "e4aa42a0643582b8487787bfb5c7c38f7716839d6f021c26aab1c6d051c2ea8a"
+pkgbuild = "packaging/PKGBUILD"
+
+[[package]]
+name = "crownos-preview"
+repo = "Crown-OS/crownos-preview"
+tag = "v0.2.0"
+asset = "crownos-preview-0.2.0-1-x86_64.pkg.tar.zst"
+sha256 = "9122db2b457acf9a7fbecfdf3813463e0a39331ff24c4b0a8de2737dccd30fb0"
+
+[[package]]
+name = "crownos-process-monitor"
+repo = "Crown-OS/crownos-process-monitor"
+tag = "v0.1.0"
+asset = "crownos-process-monitor-0.1.0-1-x86_64.pkg.tar.zst"
+sha256 = "c5ffdeadaf93e1d34ce66134a5fbad5df14c6bfdb0e6acf76cccb62e6c3bcad6"
+
+[[package]]
+name = "crownos-camera"
+repo = "Crown-OS/crownos-camera"
+tag = "v0.2.0"
+asset = "crownos-camera-0.2.0-1-x86_64.pkg.tar.zst"
+sha256 = "62e1eba56f28acfb3876cfd439cea9bfd0101fb5f842eb7f1d775223a2dc31d3"
+
+[[package]]
+name = "crownos-sound-recorder"
+repo = "Crown-OS/crownos-sound-recorder"
+tag = "v0.1.1"
+asset = "crownos-sound-recorder-0.1.1-1-x86_64.pkg.tar.zst"
+sha256 = "606583e822b512fc54fc29aa0cd16b45bed4b16043025838ccb5e09bac5fbb28"
+pkgbuild = "packaging/PKGBUILD"
+
+[[package]]
+name = "crownos-theme-engine"
+repo = "Crown-OS/crownos-theme-engine"
+tag = "v0.1.0"
+asset = "crownos-theme-engine-0.1.0-1-x86_64.pkg.tar.zst"
+sha256 = "1ff61bad3d1d66f13cd524e031d5bf09507d84ac1f4fa6920fe765140e7cb109"
+
+[[package]]
+name = "crownos-base"
+source = "packaging/crownos-base"
+
+[[package]]
+name = "crownos-release"
+source = "packaging/crownos-release"
+
+[[package]]
+name = "crownos-keyring"
+source = "packaging/crownos-keyring"
+
+[[package]]
+name = "crownos-source"
+source = "packaging/crownos-source"
+install = "optional"

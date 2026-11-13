@@ -1,0 +1,29 @@
+# shellcheck shell=bash disable=SC2034,SC2154
+# Identifies the system as CrownOS. filesystem owns /usr/lib/os-release, so
+# this ships its own copy and a hook writes it over filesystem's after every
+# transaction that touches either package. scripts/manifest.sh passes the ISO
+# version in CROWNOS_VERSION and the crownos-iso commit in CROWNOS_BUILD_ID.
+
+pkgname=crownos-release
+pkgver=${CROWNOS_VERSION:?}
+pkgrel=1
+pkgdesc='CrownOS release identification'
+arch=(any)
+url='https://github.com/Crown-OS/crownos-iso'
+license=(MIT)
+options=(!debug)
+
+package() {
+    install -d "$pkgdir/usr/lib/crownos"
+    cat >"$pkgdir/usr/lib/crownos/os-release" <<OS_RELEASE
+NAME=CrownOS
+PRETTY_NAME="CrownOS $pkgver"
+ID=crownos
+ID_LIKE=arch
+VERSION_ID=$pkgver
+BUILD_ID=${CROWNOS_BUILD_ID:?}
+HOME_URL=https://crownos.org
+LOGO=crownos
+OS_RELEASE
+    install -Dm644 -t "$pkgdir/usr/share/libalpm/hooks" "$startdir/crownos-os-release.hook"
+}

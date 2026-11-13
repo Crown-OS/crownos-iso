@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = linux-cachyos
+
+[Action]
+Description = Copying the kernel to the EFI partition...
+When = PostTransaction
+Exec = /usr/bin/crownos-esp-kernel install

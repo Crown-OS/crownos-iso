@@ -4,10 +4,15 @@ dbus
 fish
 flatpak
 inter-font
+ttf-jetbrains-mono-nerd
+ttf-nerd-fonts-symbols
+noto-fonts-emoji
 kitty
 libxkbcommon
 mesa
 starship
+zoxide
+fzf
 fastfetch
 chromium
 networkmanager

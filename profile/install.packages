@@ -1,5 +1,6 @@
-# Every package crownos-installer may pacstrap. The build bundles these and
-# their dependencies as the live image's offline repository.
+# Every package crownos-installer may pacstrap. build.sh appends the manifest's
+# system packages and bundles all of them, with their dependencies, as the live
+# image's offline repository.
 archlinux-keyring
 cachyos-keyring
 cachyos-mirrorlist
@@ -7,7 +8,11 @@ cachyos-v3-mirrorlist
 cachyos-v4-mirrorlist
 base
 btrfs-progs
-crownos-desktop
+crownos-base
+crownos-release
+crownos-keyring
+snapper
+snap-pac
 dosfstools
 e2fsprogs
 efibootmgr

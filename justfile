@@ -5,13 +5,37 @@ cachyos_key := "F3B607488DB35A47"
 default:
     @just --list
 
-# Build the ISO from the latest component releases
+# Build the ISO from the packages pinned in components.toml
 build *args: trust-cachyos
     scripts/build.sh {{args}}
 
-# Build the ISO from a local installer checkout, skipping components without a release
+# Build the ISO with a local installer checkout instead of its release
 build-local *args: trust-cachyos
-    scripts/build.sh --installer {{installer}} --missing-release skip {{args}}
+    scripts/build.sh --installer {{installer}} {{args}}
+
+# Download and build every package of components.toml into target/repo
+resolve:
+    scripts/manifest.sh resolve target/repo
+
+# Sign target/repo and publish it as the repo-testing release (needs GPGKEY and a gh login that can write releases)
+publish: resolve
+    scripts/publish.sh testing target/repo
+
+# Publish the resolved repository of an ISO tag as the repo-<tag> and repo-stable releases
+promote tag:
+    scripts/promote.sh {{tag}} target/repo
+
+# Pin a component release in components.toml: just pin Crown-OS/crownbar v0.4.0, or --latest Crown-OS/crownbar
+pin repo *args:
+    scripts/pin.sh {{repo}} {{args}}
+
+# Generate the crownos-source PKGBUILDs into a crownos-pkgbuilds checkout
+gen-pkgbuilds out="../crownos-pkgbuilds": resolve
+    scripts/gen-pkgbuilds.sh target/repo {{out}}
+
+# Fail if a pinned component's default branch is ahead of its pinned tag
+gate:
+    scripts/gate.sh
 
 # Let pacman verify packages from the CachyOS repository
 trust-cachyos:
@@ -38,6 +62,12 @@ sign iso="":
 reset-vm:
     rm -f target/disk.qcow2 target/OVMF_VARS.fd
 
+# Lint the scripts and PKGBUILDs and validate components.toml
 check:
-    for script in scripts/*.sh; do bash -n "$script"; done
-    shellcheck -x scripts/*.sh packaging/PKGBUILD
+    for script in scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/*; do bash -n "$script" || exit 1; done
+    shellcheck -x scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/*
+    python3 -I scripts/toml.py json components.toml | python3 -I scripts/toml.py write | diff - components.toml
+    scripts/manifest.sh names all >/dev/null
+    test "$(vercmp 0.1.11.r7.gf66daf5 0.1.11)" = 1
+    test "$(vercmp 0.1.11.r7.gf66daf5 0.1.12)" = -1
+    test "$(vercmp 0.1.11.r10.g0000000 0.1.11.r7.gf66daf5)" = 1

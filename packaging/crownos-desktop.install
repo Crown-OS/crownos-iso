@@ -1,7 +1,0 @@
-post_install() {
-    useradd --defaults --shell /usr/bin/fish
-    # The App Store installs snaps without a setup step once snapd listens.
-    if [[ -e /usr/lib/systemd/system/snapd.socket ]]; then
-        systemctl enable snapd.socket
-    fi
-}

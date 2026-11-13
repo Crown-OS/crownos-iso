@@ -1,0 +1,12 @@
+post_install() {
+  grep -qxF '[crownos-src]' /etc/paru.conf && return
+  printf '\n[crownos-src]\nUrl = https://github.com/Crown-OS/crownos-pkgbuilds\nSkipReview\n' >>/etc/paru.conf
+}
+
+post_upgrade() {
+  post_install
+}
+
+post_remove() {
+  sed -i '/^\[crownos-src\]$/,/^SkipReview$/d' /etc/paru.conf
+}

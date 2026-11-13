@@ -1,0 +1,12 @@
+[Unit]
+Description=Point the boot entry back at the recovered kernel
+ConditionKernelCommandLine=crownos.recover
+ConditionPathExists=/run/crownos-recovered
+RequiresMountsFor=/efi
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/crownos-esp-kernel restore
+
+[Install]
+WantedBy=multi-user.target

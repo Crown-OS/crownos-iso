@@ -1,0 +1,118 @@
+#!/usr/bin/ash
+# shellcheck shell=sh
+# With crownos.recover on the kernel command line, makes a writable copy of
+# snapper's newest pre-update snapshot the btrfs default subvolume, which the
+# root mount that follows then mounts. Any failure falls through to the current
+# version.
+#
+# Each recovery leaves the root it replaces behind as an ordinary subvolume:
+# @ after the first, @snapshots/<M>/snapshot after later ones. snapper never
+# deletes them, because they carry no cleanup algorithm.
+
+crownos_top=/crownos-top
+
+crownos_bail() {
+    err "crownos-recover: $1; starting the current version instead"
+    if mountpoint -q "$crownos_top"; then
+        umount "$crownos_top"
+    fi
+}
+
+crownos_snapshot_number() {
+    crownos_number=${1%/*}
+    crownos_number=${crownos_number##*/}
+    case $crownos_number in
+    '' | *[!0-9]*) return 1 ;;
+    esac
+    printf '%s\n' "$crownos_number"
+}
+
+crownos_newest_pre() {
+    crownos_newest=
+    for crownos_info in "$crownos_top"/@snapshots/*/info.xml; do
+        crownos_candidate=$(crownos_snapshot_number "$crownos_info") || continue
+        grep -q '<type>pre</type>' "$crownos_info" || continue
+        if [ -z "$crownos_newest" ] || [ "$crownos_candidate" -gt "$crownos_newest" ]; then
+            crownos_newest=$crownos_candidate
+        fi
+    done
+    [ -n "$crownos_newest" ] && printf '%s\n' "$crownos_newest"
+}
+
+crownos_next_number() {
+    crownos_highest=0
+    for crownos_entry in "$crownos_top"/@snapshots/*/; do
+        crownos_candidate=$(crownos_snapshot_number "${crownos_entry%/}/x") || continue
+        if [ "$crownos_candidate" -gt "$crownos_highest" ]; then
+            crownos_highest=$crownos_candidate
+        fi
+    done
+    printf '%s\n' "$((crownos_highest + 1))"
+}
+
+crownos_already_recovered_from() {
+    crownos_default=$(btrfs subvolume get-default "$crownos_top" | sed -n 's/.* path //p')
+    case $crownos_default in
+    @snapshots/*/snapshot) ;;
+    *) return 1 ;;
+    esac
+    grep -q "<description>Recovered before update $1</description>" \
+        "$crownos_top/${crownos_default%/snapshot}/info.xml" 2>/dev/null
+}
+
+crownos_write_info() {
+    cat >"$crownos_top/@snapshots/$1/info.xml" <<INFO
+<?xml version="1.0"?>
+<snapshot>
+  <type>single</type>
+  <num>$1</num>
+  <date>$(date -u '+%Y-%m-%d %H:%M:%S')</date>
+  <description>Recovered before update $2</description>
+</snapshot>
+INFO
+}
+
+crownos_recover() {
+    modprobe btrfs 2>/dev/null
+    # shellcheck disable=SC2154
+    crownos_device=$(resolve_device "$root") ||
+        { crownos_bail "the root device $root did not appear"; return; }
+    mkdir -p "$crownos_top"
+    mount -t btrfs -o subvolid=5 "$crownos_device" "$crownos_top" ||
+        { crownos_bail "could not mount $crownos_device"; return; }
+
+    crownos_pre=$(crownos_newest_pre) ||
+        { crownos_bail "there is no update to recover from"; return; }
+
+    if crownos_already_recovered_from "$crownos_pre"; then
+        msg ":: crownos-recover: already running the version before update $crownos_pre"
+        umount "$crownos_top"
+        touch /run/crownos-recovered
+        return
+    fi
+
+    crownos_copy=$(crownos_next_number)
+    mkdir -p "$crownos_top/@snapshots/$crownos_copy"
+    if ! btrfs subvolume snapshot "$crownos_top/@snapshots/$crownos_pre/snapshot" \
+        "$crownos_top/@snapshots/$crownos_copy/snapshot"; then
+        rmdir "$crownos_top/@snapshots/$crownos_copy"
+        crownos_bail "could not copy snapshot $crownos_pre"
+        return
+    fi
+    if ! crownos_write_info "$crownos_copy" "$crownos_pre" ||
+        ! btrfs subvolume set-default "$crownos_top/@snapshots/$crownos_copy/snapshot"; then
+        btrfs subvolume delete "$crownos_top/@snapshots/$crownos_copy/snapshot"
+        rm -rf "${crownos_top:?}/@snapshots/$crownos_copy"
+        crownos_bail "could not make snapshot $crownos_copy the system"
+        return
+    fi
+    touch /run/crownos-recovered
+    umount "$crownos_top"
+    msg ":: crownos-recover: starting the version before update $crownos_pre"
+}
+
+run_hook() {
+    case " $(cat /proc/cmdline) " in
+    *' crownos.recover '*) crownos_recover ;;
+    esac
+}

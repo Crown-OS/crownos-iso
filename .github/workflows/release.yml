@@ -1,29 +1,46 @@
-# Builds the ISO from the latest release of every repository in components.txt,
-# installs it unattended in QEMU with no network and boots the result. A pushed
-# tag then signs it, uploads it to the SourceForge project under the tag's name,
-# makes it the project's default download, which is what the website's download
-# button serves, and publishes that tag's GitHub release with the signature,
-# checksums and a download link: GitHub caps release files at 2 GiB, which the
-# ISO is over. A manual run or a component's update only builds and tests.
+# The CrownOS publishing pipeline (docs/publishing.md). components.toml pins
+# every CrownOS package; this workflow turns it into the signed [crownos]
+# repository, held by GitHub releases of this repository and served at
+# https://repo.crownos.org through a Cloudflare redirect, and the ISO.
+#
+#   pull request  check: lint, validate and resolve the manifest; nothing is published
+#   push to main  resolve, sign and publish the testing channel (repo-testing), then build the
+#                 ISO and install it unattended in QEMU (skipped when the commit is
+#                 tagged: the tag's run builds that ISO)
+#   v* tag        gate (no pinned component behind its default branch), resolve,
+#                 build and install-test the ISO, then in parallel: sign it and
+#                 publish it to SourceForge and the GitHub release, and promote the
+#                 exact repository it was built from to repo-<tag> and repo-stable;
+#                 then push the generated PKGBUILDs to Crown-OS/crownos-pkgbuilds
 #
 # Secrets:
+#   CROWNOS_SIGNING_KEY            armored, passphrase-less private key of packages@crownos.org
+#   CROWNOS_PKGBUILDS_TOKEN        contents: write on Crown-OS/crownos-pkgbuilds (optional)
 #   CROWNOS_SOURCES_TOKEN          read access to component releases, if any repository is private
 #   CROWNOS_ISO_SIGNING_KEY        armored private key that signs the ISO
 #   CROWNOS_ISO_SIGNING_PASSPHRASE its passphrase, if it has one
 #   CROWNOS_SOURCEFORGE_SSH_KEY    private SSH key added to the SourceForge account that uploads
 #   CROWNOS_SOURCEFORGE_API_KEY    that account's Release API key
 # Variables:
-#   CROWNOS_REPO_KEY               armored public key of the CrownOS package repository
-#   CROWNOS_SOURCEFORGE_USER       that account's username
+#   CROWNOS_SOURCEFORGE_USER       the SourceForge account's username
+# bump.yml additionally uses CROWNOS_BOT_TOKEN.
 
 name: Release
 
 on:
   push:
-    tags: ['*']
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    paths:
+      - components.toml
+      - config/**
+      - scripts/**
+      - packaging/**
+      - profile/**
+      - justfile
+      - .github/workflows/**
   workflow_dispatch:
-  repository_dispatch:
-    types: [component-updated]
 
 permissions:
   contents: write
@@ -32,8 +49,105 @@ defaults:
   run:
     shell: bash
 
+env:
+  GPGKEY: packages@crownos.org
+  GH_TOKEN: ${{ secrets.CROWNOS_SOURCES_TOKEN || github.token }}
+  # Everything the scripts read, kept when a step runs them as the builder user.
+  BUILDER_ENV: GH_TOKEN,GPGKEY,GITHUB_REPOSITORY,GITHUB_REF_TYPE,GITHUB_REF_NAME
+
 jobs:
+  check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Toolchain
+        run: pacman -Syu --noconfirm --needed base-devel github-cli git python jq shellcheck just pacman-contrib libarchive sudo gtk-update-icon-cache
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v7
+        with:
+          repository: Crown-OS/crownos-icon-theme
+          path: crownos-icon-theme
+      - name: Build user
+        run: &builder |
+          useradd --create-home builder
+          echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
+          git config --system --add safe.directory '*'
+          cat > /usr/local/bin/as-builder <<'SH'
+          #!/bin/sh
+          exec sudo -H -u builder --preserve-env="$BUILDER_ENV" -- "$@"
+          SH
+          chmod 755 /usr/local/bin/as-builder
+          chown -R builder "$GITHUB_WORKSPACE"
+      - name: Lint and validate
+        run: as-builder just check
+      - name: Resolve the manifest
+        run: as-builder scripts/manifest.sh resolve target/repo --icon-theme "$GITHUB_WORKSPACE/crownos-icon-theme"
+
+  resolve:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    # Pushes to main publish testing one at a time; a newer pending push replaces
+    # an older pending one, which is fine since the newest manifest wins.
+    concurrency:
+      group: ${{ github.ref == 'refs/heads/main' && 'crownos-testing' || format('resolve-{0}', github.run_id) }}
+      cancel-in-progress: false
+    outputs:
+      skip_iso: ${{ steps.skip.outputs.skip_iso }}
+    steps:
+      - name: Toolchain
+        run: pacman -Syu --noconfirm --needed base-devel github-cli git python jq pacman-contrib libarchive sudo gtk-update-icon-cache
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v7
+        with:
+          repository: Crown-OS/crownos-icon-theme
+          path: crownos-icon-theme
+      - name: Build user
+        run: *builder
+      - name: Gate stale components
+        if: github.ref_type == 'tag'
+        run: as-builder scripts/gate.sh
+      - name: Resolve the manifest
+        run: as-builder scripts/manifest.sh resolve target/repo --icon-theme "$GITHUB_WORKSPACE/crownos-icon-theme"
+      # Always, also when HEAD is tagged: testing then carries X.Y.Z. If the tag
+      # reached GitHub after this checkout, testing holds the .rN.g<sha> form
+      # until the workflow runs on main again.
+      - name: Publish testing
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIGNING_KEY: ${{ secrets.CROWNOS_SIGNING_KEY }}
+        run: |
+          if [ -z "$SIGNING_KEY" ]; then
+            echo "::warning::CROWNOS_SIGNING_KEY is not set; testing is not published and the repo artifact is unsigned."
+            exit 0
+          fi
+          printf '%s\n' "$SIGNING_KEY" | as-builder gpg --batch --import
+          as-builder scripts/publish.sh testing target/repo
+      - name: Decide whether this run builds the ISO
+        id: skip
+        run: |
+          skip=false
+          if [ "$GITHUB_EVENT_NAME" = push ] && [ "$GITHUB_REF" = refs/heads/main ] \
+            && [ -n "$(git tag --points-at HEAD --list 'v*')" ]; then
+            skip=true
+          fi
+          echo "skip_iso=$skip" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: repo
+          path: target/repo
+          compression-level: 0
+          retention-days: 7
+
   build:
+    needs: resolve
+    if: needs.resolve.outputs.skip_iso != 'true'
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -48,7 +162,7 @@ jobs:
       - name: Free disk space
         run: rm -rf /host/dotnet/* /host/android/* /host/toolcache/*
       - name: Toolchain
-        run: pacman -Syu --noconfirm --needed archiso base-devel github-cli git sudo gtk-update-icon-cache
+        run: pacman -Syu --noconfirm --needed archiso base-devel github-cli git python jq pacman-contrib libarchive sudo gtk-update-icon-cache
       - name: Trust CachyOS packages
         run: |
           pacman-key --init
@@ -56,27 +170,20 @@ jobs:
           pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com
           pacman-key --lsign-key F3B607488DB35A47
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/checkout@v7
         with:
           repository: Crown-OS/crownos-icon-theme
           path: crownos-icon-theme
+      - uses: actions/download-artifact@v4
+        with:
+          name: repo
+          path: target/repo
       - name: Build user
-        run: |
-          useradd --create-home builder
-          echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
-          chown -R builder "$GITHUB_WORKSPACE"
+        run: *builder
       - name: Build ISO
-        env:
-          GH_TOKEN: ${{ secrets.CROWNOS_SOURCES_TOKEN || github.token }}
-          REPO_KEY: ${{ vars.CROWNOS_REPO_KEY }}
-        run: |
-          key_args=()
-          if [ -n "$REPO_KEY" ]; then
-            printf '%s\n' "$REPO_KEY" > /tmp/crownos-archive-keyring.asc
-            key_args=(--repo-key /tmp/crownos-archive-keyring.asc)
-          fi
-          sudo -u builder -H --preserve-env=GH_TOKEN scripts/build.sh \
-            --icon-theme "$GITHUB_WORKSPACE/crownos-icon-theme" "${key_args[@]}"
+        run: as-builder scripts/build.sh --repo target/repo --icon-theme "$GITHUB_WORKSPACE/crownos-icon-theme"
       - uses: actions/upload-artifact@v4
         with:
           name: iso
@@ -108,7 +215,7 @@ jobs:
 
   publish:
     needs: install-test
-    if: startsWith(github.ref, 'refs/tags/')
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     env:
       SOURCEFORGE_PROJECT: crownos
@@ -127,9 +234,11 @@ jobs:
             echo "::error::CROWNOS_ISO_SIGNING_KEY is not set; releases are only published signed."
             exit 1
           fi
-          export GNUPGHOME=$(mktemp -d)
+          GNUPGHOME=$(mktemp -d)
+          export GNUPGHOME
           printf '%s\n' "$SIGNING_KEY" | gpg --batch --import
-          export CROWNOS_SIGNING_KEY=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ { print $10; exit }')
+          CROWNOS_SIGNING_KEY=$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ { print $10; exit }')
+          export CROWNOS_SIGNING_KEY
           echo "SIGNING_FINGERPRINT=$CROWNOS_SIGNING_KEY" >> "$GITHUB_ENV"
           for iso in out/*.iso; do scripts/sign.sh "$iso"; done
       - name: Upload to SourceForge
@@ -150,7 +259,7 @@ jobs:
           printf '%s\n' "$SSH_KEY" > "$ssh_dir/key"
           chmod 600 "$ssh_dir/key"
           printf '%s\n' "$FRS_HOST_KEY" > "$ssh_dir/known_hosts"
-          iso=$(ls *.iso)
+          iso=$(ls -- *.iso)
           sha256sum -- *.iso > SHA256SUMS
           rsync --archive --partial \
             -e "ssh -i $ssh_dir/key -o IdentitiesOnly=yes -o UserKnownHostsFile=$ssh_dir/known_hosts" \
@@ -163,7 +272,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         working-directory: out
         run: |
-          iso=$(ls *.iso)
+          iso=$(ls -- *.iso)
+          # shellcheck disable=SC2016
           notes=$(printf 'Download: [%s](%s)\n\nSigned with the CrownOS ISO key `%s`. To verify:\n\n```sh\ngpg --recv-keys %s\ngpg --verify %s.sig %s\n```\n' \
             "$iso" "$ISO_URL" "$SIGNING_FINGERPRINT" "$SIGNING_FINGERPRINT" "$iso" "$iso")
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
@@ -187,3 +297,85 @@ jobs:
           done
           echo "::error::SourceForge did not make $ISO the default download; set it under Files on $project_url."
           exit 1
+
+  # Publishes the exact repository the tested ISO was built from; it runs beside
+  # publish so a SourceForge failure never holds the packages back.
+  promote:
+    needs: install-test
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    concurrency:
+      group: crownos-stable
+      cancel-in-progress: false
+    steps:
+      - name: Toolchain
+        run: pacman -Syu --noconfirm --needed github-cli git python jq pacman-contrib libarchive sudo
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: repo
+          path: target/repo
+      - name: Build user
+        run: *builder
+      - name: Promote to repo-${{ github.ref_name }} and repo-stable
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SIGNING_KEY: ${{ secrets.CROWNOS_SIGNING_KEY }}
+        run: |
+          if [ -z "$SIGNING_KEY" ]; then
+            echo "::error::CROWNOS_SIGNING_KEY is not set; stable is only published signed."
+            exit 1
+          fi
+          printf '%s\n' "$SIGNING_KEY" | as-builder gpg --batch --import
+          as-builder scripts/promote.sh "$GITHUB_REF_NAME" target/repo
+
+  pkgbuilds:
+    needs: promote
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    continue-on-error: true
+    env:
+      PKGBUILDS_TOKEN: ${{ secrets.CROWNOS_PKGBUILDS_TOKEN }}
+    steps:
+      - name: Toolchain
+        run: pacman -Syu --noconfirm --needed base-devel github-cli git python jq libarchive sudo
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v4
+        with:
+          name: repo
+          path: target/repo
+      - name: Build user
+        run: *builder
+      - name: Generate the PKGBUILDs
+        run: as-builder scripts/gen-pkgbuilds.sh target/repo target/pkgbuilds
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pkgbuilds
+          path: target/pkgbuilds
+          retention-days: 30
+      - if: env.PKGBUILDS_TOKEN == ''
+        run: echo "::notice::CROWNOS_PKGBUILDS_TOKEN is unset; download the pkgbuilds artifact to push it to Crown-OS/crownos-pkgbuilds by hand."
+      - if: env.PKGBUILDS_TOKEN != ''
+        uses: actions/checkout@v7
+        with:
+          repository: Crown-OS/crownos-pkgbuilds
+          path: crownos-pkgbuilds
+          token: ${{ secrets.CROWNOS_PKGBUILDS_TOKEN }}
+      - name: Push the PKGBUILDs
+        if: env.PKGBUILDS_TOKEN != ''
+        working-directory: crownos-pkgbuilds
+        run: |
+          find . -mindepth 1 -maxdepth 1 ! -name '.*' -exec rm -rf -- {} +
+          cp -r -- ../target/pkgbuilds/. .
+          git add --all
+          if git diff --cached --quiet; then
+            echo "The PKGBUILDs are already current."
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "Follow crownos-iso $GITHUB_REF_NAME"
+          git push

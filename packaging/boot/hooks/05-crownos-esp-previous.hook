@@ -1,0 +1,11 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = *
+
+[Action]
+Description = Keeping the current kernel for "Recover the previous version"...
+When = PreTransaction
+Exec = /usr/bin/crownos-esp-kernel rotate

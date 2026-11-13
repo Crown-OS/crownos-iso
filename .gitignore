@@ -7,3 +7,4 @@
 /.playwright-mcp/
 /profile/airootfs/home/crownos-live/.config/
 /profile/airootfs/etc/pacman.conf
+/profile/airootfs/usr/share/crownos/manifest.toml
