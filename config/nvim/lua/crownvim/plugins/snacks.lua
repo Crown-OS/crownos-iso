@@ -17,17 +17,11 @@ return {
           { key = "s", action = "<Leader>Sl", icon = get_icon("Refresh", 0, true), desc = "Last Session  " },
         },
         header = table.concat({
-          " ██████ ██████   ██████  ██     ██ ███    ██",
-          "██      ██   ██ ██    ██ ██     ██ ████   ██",
-          "██      ██████  ██    ██ ██  █  ██ ██ ██  ██",
-          "██      ██   ██ ██    ██ ██ ███ ██ ██  ██ ██",
-          " ██████ ██   ██  ██████   ███ ███  ██   ████",
-          "",
-          "██    ██ ██ ███    ███",
-          "██    ██ ██ ████  ████",
-          "██    ██ ██ ██ ████ ██",
-          " ██  ██  ██ ██  ██  ██",
-          "  ████   ██ ██      ██",
+          "███    ██ ███████  ██████  ██    ██ ██ ███    ███",
+          "████   ██ ██      ██    ██ ██    ██ ██ ████  ████",
+          "██ ██  ██ █████   ██    ██ ██    ██ ██ ██ ████ ██",
+          "██  ██ ██ ██      ██    ██  ██  ██  ██ ██  ██  ██",
+          "██   ████ ███████  ██████    ████   ██ ██      ██",
         }, "\n"),
       },
       sections = {
@@ -180,7 +174,7 @@ return {
           }
           maps.n["<Leader>fa"] = {
             function() require("snacks").picker.files { dirs = { vim.fn.stdpath "config" }, desc = "Config Files" } end,
-            desc = "Find CrownVim config files",
+            desc = "Find Neovim config files",
           }
           maps.n["<Leader>fb"] = { function() require("snacks").picker.buffers() end, desc = "Find buffers" }
           maps.n["<Leader>fc"] =

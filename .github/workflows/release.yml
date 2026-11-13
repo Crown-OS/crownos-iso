@@ -62,7 +62,7 @@ jobs:
     container: archlinux:latest
     steps:
       - name: Toolchain
-        run: pacman -Syu --noconfirm --needed base-devel github-cli git python jq shellcheck just pacman-contrib libarchive sudo gtk-update-icon-cache
+        run: pacman -Syu --noconfirm --needed base-devel github-cli git neovim python jq shellcheck just pacman-contrib libarchive sudo gtk-update-icon-cache
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -99,7 +99,7 @@ jobs:
       skip_iso: ${{ steps.skip.outputs.skip_iso }}
     steps:
       - name: Toolchain
-        run: pacman -Syu --noconfirm --needed base-devel github-cli git python jq pacman-contrib libarchive sudo gtk-update-icon-cache
+        run: pacman -Syu --noconfirm --needed base-devel github-cli git neovim python jq pacman-contrib libarchive sudo gtk-update-icon-cache
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0

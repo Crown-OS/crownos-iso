@@ -1,4 +1,4 @@
----CrownVim Treesitter Utilities
+---Neovim Treesitter Utilities
 ---
 ---Utilities necessary for configuring treesitter in Neovim
 ---

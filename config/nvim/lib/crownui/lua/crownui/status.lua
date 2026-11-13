@@ -1,6 +1,6 @@
--- CrownVim Status Utilities
+-- Neovim Status Utilities
 --
--- Status utility functions to use within CrownVim and user configurations.
+-- Status utility functions to use within Neovim and user configurations.
 --
 -- This module can be loaded with `local crown = require "crownui.status"`
 --

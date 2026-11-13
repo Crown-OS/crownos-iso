@@ -1,4 +1,4 @@
----CrownVim Status Highlighting
+---Neovim Status Highlighting
 ---
 ---Statusline related highlighting utilities
 ---

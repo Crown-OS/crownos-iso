@@ -1,0 +1,29 @@
+# shellcheck shell=bash disable=SC2034,SC2154
+# The plugins, treesitter parsers and blink.cmp library of the CrownOS Neovim
+# configuration, fetched at build time into /etc/skel so a new user's Neovim
+# starts with nothing to download or compile. scripts/build.sh unpacks the same
+# files into the live user's home. Not stripped: blink.cmp checks its library
+# against the sha256 it was downloaded with. scripts/manifest.sh passes the ISO
+# version in CROWNOS_VERSION.
+
+pkgname=crownos-neovim
+pkgver=${CROWNOS_VERSION:?}
+pkgrel=1
+pkgdesc='Preinstalled plugins and parsers for the CrownOS Neovim configuration'
+arch=(x86_64)
+url='https://github.com/Crown-OS/crownos-iso'
+license=(GPL-3.0-or-later)
+depends=(neovim git)
+makedepends=(neovim git gcc)
+options=(!debug !strip)
+
+_iso=$startdir/../..
+
+build() {
+    "$_iso/scripts/nvim-prefetch.sh" "$_iso/config" "$srcdir/data"
+}
+
+package() {
+    install -d "$pkgdir/etc/skel/.local/share"
+    cp -r --no-preserve=ownership -- "$srcdir/data/nvim" "$pkgdir/etc/skel/.local/share/"
+}

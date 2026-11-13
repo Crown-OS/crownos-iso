@@ -164,6 +164,10 @@ name = "crownos-base"
 source = "packaging/crownos-base"
 
 [[package]]
+name = "crownos-neovim"
+source = "packaging/crownos-neovim"
+
+[[package]]
 name = "crownos-release"
 source = "packaging/crownos-release"
 

@@ -1,6 +1,6 @@
----CrownVim UI Utilities
+---Neovim UI Utilities
 ---
----UI utility functions to use within CrownVim and user configurations.
+---UI utility functions to use within Neovim and user configurations.
 ---
 ---This module can be loaded with `local crown = require "crownui"`
 ---
@@ -62,7 +62,7 @@ function M.get_hlgroup(name, fallback)
   return fallback or {}
 end
 
---- Get an icon from the CrownVim internal icons if it is available and return it
+--- Get an icon from the Neovim internal icons if it is available and return it
 ---@param kind string The kind of icon in crownui.icons to retrieve
 ---@param padding? integer Padding to add to the end of the icon
 ---@param no_fallback? boolean Whether or not to disable fallback to text icon
@@ -75,7 +75,7 @@ function M.get_icon(kind, padding, no_fallback)
   return icon and icon .. (" "):rep(padding or 0) or ""
 end
 
---- Get a icon spinner table if it is available in the CrownVim icons. Icons in format `kind1`,`kind2`, `kind3`, ...
+--- Get a icon spinner table if it is available in the Neovim icons. Icons in format `kind1`,`kind2`, `kind3`, ...
 ---@param kind string The kind of icon to check for sequential entries of
 ---@return string[]|nil spinners # A collected table of spinning icons in sequential order or nil if none exist
 function M.get_spinner(kind, ...)

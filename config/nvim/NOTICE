@@ -1,4 +1,4 @@
-CrownVim is the CrownOS Neovim configuration.
+This is the CrownOS Neovim configuration.
 
 It is a modified version of AstroNvim and its astrocore, astroui and astrolsp
 libraries (https://github.com/AstroNvim), copyright the AstroNvim

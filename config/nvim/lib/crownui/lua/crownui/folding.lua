@@ -1,4 +1,4 @@
--- CrownVim Folding Utilities
+-- Neovim Folding Utilities
 --
 -- Helper functions for configuring folding in Neovim
 --
@@ -101,7 +101,7 @@ function M.info(bufnr)
   table.insert(lines, "```lua")
   table.insert(lines, "methods = " .. vim.inspect(methods))
   table.insert(lines, "```")
-  require("crowncore").notify(table.concat(lines, "\n"), vim.log.levels.INFO, { title = "CrownVim Folding" })
+  require("crowncore").notify(table.concat(lines, "\n"), vim.log.levels.INFO, { title = "Neovim Folding" })
 end
 
 function M.setup()

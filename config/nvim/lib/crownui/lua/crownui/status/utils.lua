@@ -1,4 +1,4 @@
----CrownVim Status Utilities
+---Neovim Status Utilities
 ---
 ---Statusline related uitility functions
 ---

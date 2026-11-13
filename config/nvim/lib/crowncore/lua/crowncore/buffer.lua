@@ -1,4 +1,4 @@
----CrownVim Buffer Utilities
+---Neovim Buffer Utilities
 ---
 ---Buffer management related utility functions
 ---

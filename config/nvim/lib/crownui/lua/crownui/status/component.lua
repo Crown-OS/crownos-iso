@@ -1,4 +1,4 @@
----CrownVim Status Components
+---Neovim Status Components
 ---
 ---Statusline related component functions to use with Heirline
 ---

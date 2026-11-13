@@ -1,4 +1,4 @@
----CrownVim Status Initializers
+---Neovim Status Initializers
 ---
 ---Statusline related init functions for building dynamic statusline components
 ---

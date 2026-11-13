@@ -1,4 +1,4 @@
----CrownVim Notify Utilities
+---Neovim Notify Utilities
 ---
 ---This module implements a pausable `vim.notify` in order to defer notifications on startup as well as allow for freely pausing and resuming of notifications
 ---

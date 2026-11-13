@@ -1,4 +1,4 @@
----CrownVim Status Conditions
+---Neovim Status Conditions
 ---
 ---Statusline related condition functions to use with Heirline
 ---

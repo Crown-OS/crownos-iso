@@ -1,4 +1,4 @@
----CrownVim UI/UX Toggles
+---Neovim UI/UX Toggles
 ---
 --- Utility functions for easy UI toggles.
 ---

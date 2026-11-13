@@ -31,7 +31,7 @@ return {
     maps.x["k"] = maps.n["k"]
     maps.n["<Leader>w"] = { "<Cmd>w<CR>", desc = "Save" }
     maps.n["<Leader>q"] = { "<Cmd>confirm q<CR>", desc = "Quit Window" }
-    maps.n["<Leader>Q"] = { "<Cmd>confirm qall<CR>", desc = "Exit CrownVim" }
+    maps.n["<Leader>Q"] = { "<Cmd>confirm qall<CR>", desc = "Exit Neovim" }
     maps.n["<Leader>n"] = { "<Cmd>enew<CR>", desc = "New File" }
     maps.n["<C-S>"] = { "<Cmd>silent! update! | redraw<CR>", desc = "Force write" }
     maps.x["<C-S>"] = maps.n["<C-S>"]

@@ -1,4 +1,4 @@
----CrownVim LSP Toggles
+---Neovim LSP Toggles
 ---
 ---Utility functions for easy LSP toggles
 ---

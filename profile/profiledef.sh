@@ -26,4 +26,5 @@ file_permissions=(
   ["/home/crownos-live"]="1000:1000:755"
   ["/home/crownos-live/.config"]="1000:1000:755"
   ["/home/crownos-live/.config/crownos"]="1000:1000:755"
+  ["/home/crownos-live/.local/"]="1000:1000:755"
 )

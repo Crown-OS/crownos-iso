@@ -1,4 +1,4 @@
----CrownVim Rooter
+---Neovim Rooter
 ---
 ---Utilities necessary for automatic root detection
 ---
@@ -23,7 +23,7 @@ M.detectors = {}
 local vim_autochdir
 
 local function notify(msg, level)
-  require("crowncore").notify(msg, level or vim.log.levels.INFO, { title = "CrownVim Rooter" })
+  require("crowncore").notify(msg, level or vim.log.levels.INFO, { title = "Neovim Rooter" })
 end
 
 local function resolve_config() return require("crowncore").config.rooter or {} end

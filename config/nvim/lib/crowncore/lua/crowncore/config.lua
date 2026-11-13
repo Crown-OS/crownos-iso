@@ -1,4 +1,4 @@
--- CrownVim Core Configuration
+-- Neovim Core Configuration
 --
 -- This module simply defines the configuration table structure for `opts` used in:
 --
@@ -243,7 +243,7 @@
 ---    -- first element with no key is the command (string or function)
 ---    function() require("crowncore").reload() end,
 ---    -- the rest are options for creating user commands (:h nvim_create_user_command)
----    desc = "Reload CrownVim (Experimental)",
+---    desc = "Reload Neovim (Experimental)",
 ---  }
 ---}
 ---```
@@ -392,7 +392,7 @@
 ---}
 ---```
 ---@field rooter CrownCoreRooterOpts|false?
----Configuration table of session options for CrownVim's session management powered by Resession
+---Configuration table of session options for Neovim's session management powered by Resession
 ---Example:
 --
 ---```lua
@@ -409,7 +409,7 @@
 ---}
 ---```
 ---@field sessions CrownCoreSessionOpts?
----Configuration table of treesitter options for CrownVim
+---Configuration table of treesitter options for Neovim
 ---Example:
 --
 ---```lua

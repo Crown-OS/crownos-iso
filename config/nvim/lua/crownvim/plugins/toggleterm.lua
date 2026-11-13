@@ -44,9 +44,9 @@ return {
           maps.n["<Leader>tu"] =
             { function() crown.toggle_term_cmd { cmd = gdu, direction = "float" } end, desc = "ToggleTerm gdu" }
         end
-        if vim.fn.executable "btm" == 1 then
+        if vim.fn.executable "btop" == 1 then
           maps.n["<Leader>tt"] =
-            { function() crown.toggle_term_cmd { cmd = "btm", direction = "float" } end, desc = "ToggleTerm btm" }
+            { function() crown.toggle_term_cmd { cmd = "btop", direction = "float" } end, desc = "ToggleTerm btop" }
         end
         local python = vim.fn.executable "python" == 1 and "python" or vim.fn.executable "python3" == 1 and "python3"
         if python then

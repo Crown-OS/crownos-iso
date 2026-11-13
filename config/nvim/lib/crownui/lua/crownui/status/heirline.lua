@@ -1,4 +1,4 @@
----CrownVim Status Heirline Extensions
+---Neovim Status Heirline Extensions
 ---
 ---Statusline related heirline specific extensions
 ---

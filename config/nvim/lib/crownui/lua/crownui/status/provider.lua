@@ -1,4 +1,4 @@
----CrownVim Status Providers
+---Neovim Status Providers
 ---
 ---Statusline related provider functions for building statusline components
 ---

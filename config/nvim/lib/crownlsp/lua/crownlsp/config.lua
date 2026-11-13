@@ -1,4 +1,4 @@
--- CrownVim LSP Configuration
+-- Neovim LSP Configuration
 --
 -- This module simply defines the configuration table structure for `opts` used in:
 --

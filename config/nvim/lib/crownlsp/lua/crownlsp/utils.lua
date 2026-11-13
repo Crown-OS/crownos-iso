@@ -1,4 +1,4 @@
----CrownVim LSP Utilities
+---Neovim LSP Utilities
 ---
 ---Helpers for handling values decoded from LSP JSON messages.
 ---

@@ -9,7 +9,7 @@ function M.library(name) return vim.fn.stdpath "config" .. "/lib/" .. name end
 function M.init()
   if vim.fn.has "nvim-0.11" == 0 then
     vim.api.nvim_echo({
-      { "CrownVim requires Neovim >= 0.11.0\n", "ErrorMsg" },
+      { "This configuration requires Neovim >= 0.11.0\n", "ErrorMsg" },
       { "Press any key to exit", "MoreMsg" },
     }, true, {})
     vim.fn.getchar()

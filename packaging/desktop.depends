@@ -13,7 +13,12 @@ mesa
 starship
 zoxide
 fzf
+ripgrep
+fd
+lazygit
+wl-clipboard
 fastfetch
+btop
 chromium
 networkmanager
 pacman-contrib

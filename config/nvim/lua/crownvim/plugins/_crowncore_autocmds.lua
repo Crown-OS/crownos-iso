@@ -10,7 +10,7 @@ return {
   ---@type CrownCoreOpts
   opts = {
     commands = {
-      CrownReload = { function() require("crowncore").reload() end, desc = "Reload CrownVim (Experimental)" },
+      CrownReload = { function() require("crowncore").reload() end, desc = "Reload Neovim (Experimental)" },
       CrownUpdate = { function() require("crowncore").update_packages() end, desc = "Update Lazy and Mason" },
       CrownRename = {
         function(opts) require("crowncore").rename_file { to = opts.fargs[1], force = opts.bang } end,
@@ -24,7 +24,7 @@ return {
       auto_quit = {
         {
           event = "BufEnter",
-          desc = "Quit CrownVim if more than one window is open and only sidebar windows are left",
+          desc = "Quit Neovim if more than one window is open and only sidebar windows are left",
           callback = function()
             local wins = vim.api.nvim_tabpage_list_wins(0)
             -- neo-tree handles if there is only a single window left
@@ -132,7 +132,7 @@ return {
       file_user_events = {
         {
           event = { "BufReadPost", "BufNewFile", "BufWritePost" },
-          desc = "CrownVim user events for file detection (CrownFile and CrownGitFile)",
+          desc = "Neovim user events for file detection (CrownFile and CrownGitFile)",
           callback = function(args)
             if vim.b[args.buf].crownfile_checked then return end
             vim.schedule(function()

@@ -1,6 +1,6 @@
----CrownVim LSP Utilities
+---Neovim LSP Utilities
 ---
----Various utility functions to use within CrownVim for the LSP engine
+---Various utility functions to use within Neovim for the LSP engine
 ---
 ---This module can be loaded with `local crown = require "crownlsp"`
 ---
@@ -229,7 +229,7 @@ local function configure_buffer(client, bufnr)
   end
 end
 
---- The `on_attach` function used by CrownVim
+--- The `on_attach` function used by Neovim
 ---@param client vim.lsp.Client The LSP client details when attaching
 ---@param bufnr integer The buffer that the LSP client is attaching to
 function M.on_attach(client, bufnr)

@@ -29,6 +29,7 @@ staged_key=$profile/airootfs/usr/share/crownos/crownos-archive-keyring.asc
 staged_manifest=$profile/airootfs/usr/share/crownos/manifest.toml
 staged_root_config=$profile/airootfs/root/.config
 staged_live_config=$profile/airootfs/home/crownos-live/.config
+staged_live_home=$profile/airootfs/home/crownos-live
 staged_pacman_conf=$profile/airootfs/etc/pacman.conf
 keyring=$root/packaging/crownos-keyring/crownos.gpg
 package_cache=$target/pkg-cache
@@ -97,6 +98,15 @@ stage_live_config() {
         "$staged_live_config/crownos/compositor.ron"
 }
 
+# crownos-neovim puts Neovim's plugins and parsers in /etc/skel, which the
+# prebuilt live home never copies from, so its files are unpacked there too.
+stage_live_nvim_data() {
+    local packages=("$repo_dir"/crownos-neovim-*.pkg.tar.zst)
+    ((${#packages[@]} == 1)) || die "$repo_dir needs exactly one crownos-neovim package"
+    rm -rf -- "$staged_live_home/.local"
+    bsdtar -xf "${packages[0]}" -C "$staged_live_home" --strip-components 2 etc/skel/.local
+}
+
 stage_pacman_conf() {
     install -Dm644 -- "$profile/pacman.conf" "$staged_pacman_conf"
 }
@@ -141,6 +151,7 @@ stage_live_list
 stage_manifest
 stage_root_config
 stage_live_config
+stage_live_nvim_data
 stage_pacman_conf
 stage_repo_key
 stage_mirror

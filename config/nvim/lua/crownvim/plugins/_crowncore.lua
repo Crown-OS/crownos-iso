@@ -17,6 +17,7 @@ return {
     priority = 10000,
     opts = function(_, opts)
       local get_icon = require("crownui").get_icon
+      local can_compile_parsers = vim.fn.executable "cc" == 1
       return require("crowncore").extend_tbl(opts, {
         features = {
           large_buf = {
@@ -79,8 +80,29 @@ return {
           enabled = function(_, bufnr) return not require("crowncore.buffer").is_large(bufnr) end,
           highlight = true,
           indent = true,
-          auto_install = true,
-          ensure_installed = { "bash", "c", "lua", "markdown", "markdown_inline", "python", "query", "vim", "vimdoc" },
+          auto_install = can_compile_parsers,
+          auto_install_cli = can_compile_parsers,
+          ensure_installed = {
+            "bash",
+            "c",
+            "css",
+            "html",
+            "javascript",
+            "json",
+            "lua",
+            "markdown",
+            "markdown_inline",
+            "python",
+            "query",
+            "ron",
+            "rust",
+            "toml",
+            "tsx",
+            "typescript",
+            "vim",
+            "vimdoc",
+            "yaml",
+          },
           textobjects = {
             select = {
               select_textobject = {

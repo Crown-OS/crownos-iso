@@ -1,4 +1,4 @@
--- CrownVim UI Status Configuration
+-- Neovim UI Status Configuration
 --
 -- This module simply defines the configuration table structure for `opts.status` used in:
 --
@@ -274,7 +274,7 @@
 ---@field disabled table<BufMatcherKinds, BufMatcherPattern[]>? Buffer matching patterns for blacklisting buffers from enabling winbar
 
 ---@class CrownUIStatusOpts
----Configure attributes of components defined in the `status` API. Check the CrownVim documentation for a complete list of color names, this applies to colors that have `_fg` and/or `_bg` names with the suffix removed (ex. `git_branch_fg` as attributes from `git_branch`).
+---Configure attributes of components defined in the `status` API. Check the Neovim documentation for a complete list of color names, this applies to colors that have `_fg` and/or `_bg` names with the suffix removed (ex. `git_branch_fg` as attributes from `git_branch`).
 ---Example:
 ---
 ---```lua
@@ -283,7 +283,7 @@
 ---}
 ---```
 ---@field attributes table<string,table>?
----Configure colors of components defined in the `status` API. Check the CrownVim documentation for a complete list of color names.
+---Configure colors of components defined in the `status` API. Check the Neovim documentation for a complete list of color names.
 ---Example:
 ---
 ---```lua

@@ -1,4 +1,4 @@
----CrownVim LSP File Operation Utilities
+---Neovim LSP File Operation Utilities
 ---
 ---Utilities for working with LSP based file operations
 ---

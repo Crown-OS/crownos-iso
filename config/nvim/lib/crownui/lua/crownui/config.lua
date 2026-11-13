@@ -1,4 +1,4 @@
--- CrownVim UI Configuration
+-- Neovim UI Configuration
 --
 -- This module simply defines the configuration table structure for `opts` used in:
 --
@@ -101,7 +101,7 @@
 ---}
 ---```
 ---@field text_icons StringMap?
----Configuration options for the CrownVim lines and bars built with the `status` API.
+---Configuration options for the Neovim lines and bars built with the `status` API.
 ---Example:
 ---
 ---```lua

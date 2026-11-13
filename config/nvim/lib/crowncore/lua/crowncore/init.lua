@@ -1,6 +1,6 @@
----CrownVim Core Utilities
+---Neovim Core Utilities
 ---
----Various utility functions to use within CrownVim and user configurations.
+---Various utility functions to use within Neovim and user configurations.
 ---
 ---This module can be loaded with `local crown = require "crowncore"`
 ---
@@ -56,7 +56,7 @@ function M.update_packages()
   end
 end
 
---- Partially reload CrownVim user settings. Includes core vim options, mappings, and highlights. This is an experimental feature and may lead to instabilities until restart.
+--- Partially reload Neovim user settings. Includes core vim options, mappings, and highlights. This is an experimental feature and may lead to instabilities until restart.
 function M.reload()
   local lazy, was_modifiable = require "lazy", vim.opt.modifiable:get()
   if not was_modifiable then vim.opt.modifiable = true end
@@ -110,7 +110,7 @@ function M.conditional_func(func, condition, ...)
   if condition and type(func) == "function" then return func(...) end
 end
 
---- Serve a notification with a title of CrownVim
+--- Serve a notification with a title of Neovim
 ---@param msg string The notification body
 ---@param type integer|nil The type of the notification (:help vim.log.levels)
 ---@param opts? table The nvim-notify options to use (:help notify-options)
@@ -119,11 +119,11 @@ function M.notify(msg, type, opts, force)
   if not force and vim.tbl_get(M.config, "features", "notifications") == false then return end
   vim.schedule(function()
     if not force and vim.tbl_get(M.config, "features", "notifications") == false then return end
-    vim.notify(msg, type, M.extend_tbl({ title = "CrownVim" }, opts))
+    vim.notify(msg, type, M.extend_tbl({ title = "Neovim" }, opts))
   end)
 end
 
---- Trigger an CrownVim user event
+--- Trigger an Neovim user event
 ---@param event string|vim.api.keyset.exec_autocmds The event pattern or full autocmd options (pattern always prepended with "Crown")
 ---@param instant? boolean Whether or not to execute instantly or schedule
 function M.event(event, instant)
