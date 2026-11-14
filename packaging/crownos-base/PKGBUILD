@@ -41,6 +41,7 @@ package() {
     _package_automount
     _package_updates
     _package_brightness
+    _package_remote_desktop
     install -Dm644 -t "$pkgdir/usr/share/polkit-1/actions" "$startdir"/*.policy "$startdir/windows-apps/org.crownos.windows-apps.policy" "$startdir/memory/org.crownos.memory.policy"
     install -Dm644 -t "$pkgdir/usr/share/dbus-1/system.d" "$startdir/process-monitor/org.crownos.ProcessMonitor1.conf"
     install -Dm644 -t "$pkgdir/usr/share/dbus-1/system-services" "$startdir/process-monitor/org.crownos.ProcessMonitor1.service"
@@ -71,6 +72,13 @@ _package_updates() {
 _package_brightness() {
     install -Dm644 -t "$pkgdir/usr/lib/modules-load.d" "$startdir/brightness/crownos-ddc.conf"
     install -Dm644 -t "$pkgdir/usr/lib/udev/rules.d" "$startdir/brightness/70-crownos-ddc.rules"
+}
+
+# crownos-remoted ships in crownos-remote-desktop. The unit is installed but not
+# enabled: the user turns sharing on in remote_desktop.ron and with
+# `systemctl --user enable --now crownos-remoted`.
+_package_remote_desktop() {
+    install -Dm644 -t "$pkgdir/usr/lib/systemd/user" "$startdir/remote-desktop/crownos-remoted.service"
 }
 
 # crownos-automount ships in crownos-diskmanager; it runs for every user
