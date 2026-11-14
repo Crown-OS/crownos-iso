@@ -1,0 +1,11 @@
+{
+  "extraKnownMarketplaces": {
+    "crownos": {
+      "source": { "source": "directory", "path": "/usr/share/crownos/claude-marketplace" },
+      "autoUpdate": false
+    }
+  },
+  "enabledPlugins": {
+    "crownos@crownos": true
+  }
+}

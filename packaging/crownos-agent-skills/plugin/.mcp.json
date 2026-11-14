@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "crownos-computer-use": {
+      "type": "stdio",
+      "command": "crownos-computer-use",
+      "args": ["mcp"]
+    }
+  }
+}

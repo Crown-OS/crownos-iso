@@ -68,6 +68,7 @@ build_source() {
     version=$(iso_version) id=$(build_id)
     (cd -- "$root/$source" && BUILDDIR=$root/target/build PKGDEST=$repo_dir SRCDEST=$root/target/src \
         CROWNOS_VERSION=$version CROWNOS_BUILD_ID=$id CROWNOS_ICON_THEME=$icon_theme \
+        CROWNOS_SIBLINGS=$(realpath -- "$root/..") \
         makepkg --force --nodeps --cleanbuild --noconfirm)
 }
 

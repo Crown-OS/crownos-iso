@@ -1,0 +1,9 @@
+{
+  "name": "crownos",
+  "version": "0.1.0",
+  "description": "CrownOS desktop: settings reference, computer use, browser control, context engine and desktop notifications for Claude Code.",
+  "author": { "name": "CrownOS", "url": "https://github.com/Crown-OS" },
+  "homepage": "https://github.com/Crown-OS/crownos-iso",
+  "license": "MIT",
+  "keywords": ["crownos", "desktop", "computer-use", "notifications"]
+}

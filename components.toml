@@ -168,6 +168,10 @@ name = "crownos-neovim"
 source = "packaging/crownos-neovim"
 
 [[package]]
+name = "crownos-agent-skills"
+source = "packaging/crownos-agent-skills"
+
+[[package]]
 name = "crownos-release"
 source = "packaging/crownos-release"
 
