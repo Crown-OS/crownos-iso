@@ -1,0 +1,29 @@
+# shellcheck shell=bash disable=SC2034,SC2154
+# The Yazi plugins pinned in config/yazi/package.toml, fetched at build time
+# into /etc/skel so a new user's Yazi starts with nothing to download.
+# scripts/build.sh unpacks the same files into the live user's home. The
+# plugins stay byte-identical to their pinned hashes so `ya pkg upgrade` works.
+# scripts/manifest.sh passes the ISO version in CROWNOS_VERSION.
+
+pkgname=crownos-yazi
+pkgver=${CROWNOS_VERSION:?}
+pkgrel=1
+pkgdesc='Preinstalled plugins for the CrownOS Yazi configuration'
+arch=(any)
+url='https://github.com/Crown-OS/crownos-iso'
+license=(MIT AGPL-3.0-only)
+depends=(yazi git fzf ripgrep bat lazygit trash-cli rsync imagemagick 7zip gvfs gvfs-mtp udisks2)
+makedepends=(yazi git)
+options=(!debug !strip)
+
+_lockfile=$startdir/../../config/yazi/package.toml
+
+build() {
+    install -Dm644 -- "$_lockfile" "$srcdir/config/package.toml"
+    YAZI_CONFIG_HOME=$srcdir/config XDG_STATE_HOME=$srcdir/state ya pkg install
+}
+
+package() {
+    install -d "$pkgdir/etc/skel/.config/yazi"
+    cp -r --no-preserve=ownership -- "$srcdir/config/plugins" "$pkgdir/etc/skel/.config/yazi/"
+}

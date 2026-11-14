@@ -107,6 +107,14 @@ stage_live_nvim_data() {
     bsdtar -xf "${packages[0]}" -C "$staged_live_home" --strip-components 2 etc/skel/.local
 }
 
+# crownos-yazi puts Yazi's plugins in /etc/skel, which the prebuilt live home
+# never copies from, so its plugins are unpacked into the live config too.
+stage_live_yazi_plugins() {
+    local packages=("$repo_dir"/crownos-yazi-*.pkg.tar.zst)
+    ((${#packages[@]} == 1)) || die "$repo_dir needs exactly one crownos-yazi package"
+    bsdtar -xf "${packages[0]}" -C "$staged_live_config" --strip-components 3 etc/skel/.config/yazi/plugins
+}
+
 stage_pacman_conf() {
     install -Dm644 -- "$profile/pacman.conf" "$staged_pacman_conf"
 }
@@ -152,6 +160,7 @@ stage_manifest
 stage_root_config
 stage_live_config
 stage_live_nvim_data
+stage_live_yazi_plugins
 stage_pacman_conf
 stage_repo_key
 stage_mirror

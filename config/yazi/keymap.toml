@@ -1,0 +1,50 @@
+# Bindings below are added before Yazi's defaults and take precedence.
+# Learn more: https://yazi-rs.github.io/docs/configuration/keymap
+
+[mgr]
+prepend_keymap = [
+	{ on = "H", run = "help", desc = "Show all shortcuts, type to filter" },
+	{ on = "!", run = 'shell "$SHELL" --block', desc = "Open a shell here" },
+
+	{ on = "l", run = "plugin smart-enter", desc = "Enter the directory, or open the file" },
+	{ on = "<Enter>", run = "plugin smart-enter", desc = "Enter the directory, or open the file" },
+	{ on = "T", run = "plugin toggle-pane max-preview", desc = "Maximize or restore the preview pane" },
+	{ on = ["g", "i"], run = "plugin lazygit", desc = "Open lazygit" },
+	{ on = ["F", "G"], run = "plugin yafg", desc = "Fuzzy find and grep file contents" },
+
+	{ on = "'", run = "plugin whoosh jump_by_key", desc = "Jump to a bookmark" },
+	{ on = '"', run = "plugin whoosh jump_by_fzf", desc = "Jump to a bookmark with fzf" },
+	{ on = ["b", "a"], run = "plugin whoosh save", desc = "Bookmark the hovered directory" },
+	{ on = ["b", "A"], run = "plugin whoosh save_cwd", desc = "Bookmark the current directory" },
+	{ on = ["b", "t"], run = "plugin whoosh save_temp", desc = "Bookmark the hovered directory for this session" },
+	{ on = ["b", "d"], run = "plugin whoosh delete_by_key", desc = "Delete a bookmark" },
+	{ on = ["b", "D"], run = "plugin whoosh delete_by_fzf", desc = "Delete bookmarks with fzf" },
+	{ on = ["b", "r"], run = "plugin whoosh rename_by_key", desc = "Rename a bookmark" },
+
+	{ on = "u", run = "plugin restore", desc = "Restore the last trashed files" },
+	{ on = "U", run = "plugin restore -- --interactive", desc = "Choose trashed files to restore" },
+	{ on = "R", run = "plugin rsync", desc = "Copy with rsync" },
+
+	{ on = ["c", "a", "a"], run = "plugin compress", desc = "Archive selected files" },
+	{ on = ["c", "a", "p"], run = "plugin compress -p", desc = "Archive selected files with a password" },
+	{ on = ["c", "a", "h"], run = "plugin compress -ph", desc = "Archive with a password and encrypted header" },
+	{ on = ["c", "a", "l"], run = "plugin compress -l", desc = "Archive selected files at a compression level" },
+	{ on = ["c", "p"], run = "plugin convert -- --extension='png'", desc = "Convert selected images to PNG" },
+	{ on = ["c", "j"], run = "plugin convert -- --extension='jpg'", desc = "Convert selected images to JPG" },
+	{ on = ["c", "w"], run = "plugin convert -- --extension='webp'", desc = "Convert selected images to WebP" },
+
+	{ on = ["M", "d"], run = "plugin mount", desc = "Manage disks and partitions" },
+	{ on = ["M", "m"], run = "plugin gvfs -- select-then-mount --jump", desc = "Mount a device or share and jump to it" },
+	{ on = ["M", "u"], run = "plugin gvfs -- select-then-unmount", desc = "Unmount a device or share" },
+	{ on = ["M", "U"], run = "plugin gvfs -- select-then-unmount --eject", desc = "Eject a device" },
+	{ on = ["M", "a"], run = "plugin gvfs -- add-mount", desc = "Add a network mount URI" },
+	{ on = ["M", "e"], run = "plugin gvfs -- edit-mount", desc = "Edit a network mount URI" },
+	{ on = ["M", "x"], run = "plugin gvfs -- remove-mount", desc = "Remove a network mount URI" },
+	{ on = ["M", "j"], run = "plugin gvfs -- jump-to-device", desc = "Jump to a mounted device" },
+	{ on = ["M", "r"], run = "plugin gvfs -- remount-current-cwd-device", desc = "Remount the device under the current directory" },
+]
+
+[help]
+prepend_keymap = [
+	{ on = "H", run = "close", desc = "Hide all shortcuts" },
+]

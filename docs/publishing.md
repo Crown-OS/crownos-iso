@@ -153,6 +153,7 @@ crownos-iso (`github.token` in CI).
 | `crownos-release` | `/usr/lib/crownos/os-release` and a pacman hook copying it over `/usr/lib/os-release` |
 | `crownos-keyring` | the repository key for `pacman-key --populate crownos` |
 | `crownos-source` | opt-in: `-march=native` and paru's `[crownos-src]` |
+| `crownos-yazi` | the Yazi plugins pinned in `config/yazi/package.toml`, fetched with `ya pkg install` into `/etc/skel/.config/yazi/plugins`; depends on the tools those plugins call |
 | `crownos-agent-skills` | the skills coding agents read about CrownOS (`/usr/share/crownos/skills`, linked into Claude Code's and Codex's system skill folders), a Claude Code plugin with crownotify hooks and the `crownos-computer-use` MCP server in a local marketplace that `/etc/claude-code/managed-settings.d/50-crownos.json` force-enables, the settings reference from `crownos-config`'s `cargo xtask config-docs`, and the per-user `crownos-agent-skills` setup; built from the sibling checkouts named in `packaging/crownos-agent-skills/README.md` |
 
 `filesystem` owns `/usr/lib/os-release` and the `/etc/os-release` link, so

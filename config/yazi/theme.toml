@@ -1,0 +1,7 @@
+# Yazi follows the terminal's colors, which the CrownOS theme sets in Kitty.
+# Override styles here, or set a flavor.
+# Learn more: https://yazi-rs.github.io/docs/configuration/theme
+
+[flavor]
+dark = ""
+light = ""
