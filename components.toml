@@ -12,9 +12,9 @@ install = "live"
 [[package]]
 name = "crownpositor"
 repo = "Crown-OS/crownpositor"
-tag = "v0.2.0"
-asset = "crownpositor-0.2.0-1-x86_64.pkg.tar.zst"
-sha256 = "f56b733c011a7bc9c8dcb7528751df39a5cc19659673019dc5630933ccafa286"
+tag = "v0.4.0"
+asset = "crownpositor-0.4.0-1-x86_64.pkg.tar.zst"
+sha256 = "0b10f250e55147330c669e050ee71a920c9bd53e07c176730e5b54304c57e6d5"
 
 [[package]]
 name = "crownbar"
@@ -47,9 +47,9 @@ sha256 = "5be77a1af98fe19258227cf35219740c4d7aecf76ca87699dc94bc65fb61701b"
 [[package]]
 name = "crownos-settings"
 repo = "Crown-OS/crownos-settings"
-tag = "v0.3.0"
-asset = "crownos-settings-0.3.0-1-x86_64.pkg.tar.zst"
-sha256 = "a8c6dff5a632fc26b2a277af4d3e9ee83a69bcefe675d21a9f01abef4922b251"
+tag = "v0.4.0"
+asset = "crownos-settings-0.4.0-1-x86_64.pkg.tar.zst"
+sha256 = "54c2f469f1f08d74220dd269cdcd409e7baa37c80ee571054b83d76cc9db0a2c"
 
 [[package]]
 name = "crownos-clipboard"
@@ -68,9 +68,9 @@ sha256 = "7cc2f37d6bd1f74e2296c3451d7699ed45da5ceea43cee9590662a3a8d49f417"
 [[package]]
 name = "crownlink-linux"
 repo = "Crown-OS/crownlink-linux"
-tag = "v0.1.1"
-asset = "crownlink-linux-0.1.1-1-x86_64.pkg.tar.zst"
-sha256 = "76a0ab1238afe29ae6af8bfe09a9c130e348765a05a7c7b02daedc8f10ba86a6"
+tag = "v0.2.0"
+asset = "crownlink-linux-0.2.0-1-x86_64.pkg.tar.zst"
+sha256 = "4b77bd06d5ca95e3120537f31ca2e01ac5b3784ff1c6b7defa9714417d2bbd69"
 
 [[package]]
 name = "crownlauncher"
