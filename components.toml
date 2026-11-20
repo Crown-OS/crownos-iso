@@ -4,17 +4,17 @@
 [[package]]
 name = "crownos-installer"
 repo = "Crown-OS/crownos-installer"
-tag = "v0.3.1"
-asset = "crownos-installer-0.3.1-1-x86_64.pkg.tar.zst"
-sha256 = "7709d3742932c92b627aa2384b3ca838d4e2cb409d96768fd0a8f1cc3ab1fde5"
+tag = "v0.3.2"
+asset = "crownos-installer-0.3.2-1-x86_64.pkg.tar.zst"
+sha256 = "8e2c3a2c8b7d2e4ced1cd8df97ec5eae66cabeafcdbe4eb25a861aa4ad415ba4"
 install = "live"
 
 [[package]]
 name = "crownpositor"
 repo = "Crown-OS/crownpositor"
-tag = "v0.4.0"
-asset = "crownpositor-0.4.0-1-x86_64.pkg.tar.zst"
-sha256 = "0b10f250e55147330c669e050ee71a920c9bd53e07c176730e5b54304c57e6d5"
+tag = "v0.4.1"
+asset = "crownpositor-0.4.1-1-x86_64.pkg.tar.zst"
+sha256 = "8bfdf0d5e0c8b01012b7ec24c025fa753ee2ca611c3163b5851b379ee88669a8"
 
 [[package]]
 name = "crownbar"
@@ -47,9 +47,9 @@ sha256 = "5be77a1af98fe19258227cf35219740c4d7aecf76ca87699dc94bc65fb61701b"
 [[package]]
 name = "crownos-settings"
 repo = "Crown-OS/crownos-settings"
-tag = "v0.4.0"
-asset = "crownos-settings-0.4.0-1-x86_64.pkg.tar.zst"
-sha256 = "54c2f469f1f08d74220dd269cdcd409e7baa37c80ee571054b83d76cc9db0a2c"
+tag = "v0.4.1"
+asset = "crownos-settings-0.4.1-1-x86_64.pkg.tar.zst"
+sha256 = "557d8ee2c595f4777bc6918ebf5e4b3ee1a338907d86847dbb8ec9113ab8a6b2"
 
 [[package]]
 name = "crownos-clipboard"
@@ -89,16 +89,16 @@ sha256 = "d514f0d9f31a5417116016aa3fc3a5f5c4905d57e3e4b5c3be74a6d066a5af12"
 [[package]]
 name = "crownos-appstore"
 repo = "Crown-OS/crownos-appstore"
-tag = "v0.1.3"
-asset = "crownos-appstore-0.1.3-1-x86_64.pkg.tar.zst"
-sha256 = "3498f0e47a8bcf637358dad7b5f57bb812abfb75bae86e0d9d956f540a468736"
+tag = "v0.1.4"
+asset = "crownos-appstore-0.1.4-1-x86_64.pkg.tar.zst"
+sha256 = "b91e8a2907a4ffccbe440bde61f0fd6ddd07636f6f44241faec906dbfc8e193b"
 
 [[package]]
 name = "snapd"
 repo = "Crown-OS/crownos-appstore"
-tag = "v0.1.3"
+tag = "v0.1.4"
 asset = "snapd-2.78-1-x86_64.pkg.tar.zst"
-sha256 = "080653fb0361ac5c5c3bf1fc410274f11bbca732119c6a03849dc87b4e0d9589"
+sha256 = "ec756e1df08aa5877838fd1161df7cb8c2984cf3e87c6a6cd110441ce1a9c7c5"
 pkgbuild = "packaging/snapd/PKGBUILD"
 
 [[package]]
@@ -187,3 +187,10 @@ source = "packaging/crownos-keyring"
 name = "crownos-source"
 source = "packaging/crownos-source"
 install = "optional"
+
+[[package]]
+name = "crownos-update"
+repo = "Crown-OS/crownos-update"
+tag = "v0.1.0"
+asset = "crownos-update-0.1.0-1-x86_64.pkg.tar.zst"
+sha256 = "13a977b2567da6376ae1274b22a4fc19933a1142588c1d72f825eee4b3fcc717"
