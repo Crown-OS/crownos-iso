@@ -19,5 +19,5 @@ The MCP server entries are:
 
 - `crownos-computer-use` runs `crownos-computer-use mcp`. It starts once the crownos-computer-use
   component is installed.
-- `playwright` runs `crownos-setup playwright-mcp`. It starts once the `crownos-setup` package is
-  installed.
+- `playwright` runs `crownos-setup playwright-mcp`. This entry is added when the `crownos-setup`
+  package is in the ISO.

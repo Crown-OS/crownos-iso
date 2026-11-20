@@ -43,7 +43,8 @@ option undoes the links, and `--list` shows the folders.
   block every server a user adds. The MCP servers come through the plugin's `.mcp.json`.
 - Drop-ins under `managed-settings.d/` merge alphabetically after `managed-settings.json`; the
   `50-` prefix leaves room on both sides.
-- The plugin's MCP servers are `crownos-computer-use` and `playwright`, both over stdio.
+- The plugin's MCP servers are `crownos-computer-use` and `playwright`, both over stdio. The
+  `playwright` entry is added when the `crownos-setup` package is in the ISO.
   `crownos-computer-use mcp` ships with the crownos-computer-use component.
   `crownos-setup playwright-mcp` ships with the `crownos-setup` package and starts `@playwright/mcp`
   on the browser chosen at install time. Until a binary is installed, its server fails to start
