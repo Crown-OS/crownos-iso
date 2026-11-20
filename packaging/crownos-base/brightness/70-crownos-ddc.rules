@@ -1,0 +1,3 @@
+# The user at the seat may talk DDC/CI to the monitors, so the compositor can
+# set their brightness without the i2c group.
+KERNEL=="i2c-[0-9]*", TAG+="uaccess"
