@@ -70,6 +70,9 @@ playwright-cli open --browser <name> https://example.org
 
 If the `playwright` tools are not available:
 
-1. Run `crownos-setup status`. Look at the `playwright` task.
-2. Tell the user to open Settings > Developer Tools.
+1. If the `crownos-setup` command exists, run `crownos-setup status` and look at the `playwright`
+   task, and tell the user to open Settings > Developer Tools.
+2. If the command does not exist, this CrownOS release has no Playwright. Use the browser tools of
+   the `crownos-computer-use` MCP server instead (skill `crownos-browser`), and tell the user that
+   Playwright comes with a later release.
 3. Do not install Playwright or a browser yourself with `npm` or `npx`.

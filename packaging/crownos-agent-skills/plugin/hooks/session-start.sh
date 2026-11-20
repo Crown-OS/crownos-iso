@@ -6,10 +6,13 @@ set -eu
 [ -r /usr/lib/crownos/os-release ] || [ -d /usr/share/crownos ] || exit 0
 
 release=$(sed -n 's/^PRETTY_NAME=//p' /usr/lib/crownos/os-release 2>/dev/null | tr -d '"')
+web='web pages through the browser tools of the same server (skill: crownos-browser)'
+if command -v crownos-setup >/dev/null 2>&1; then
+    web='web pages through the playwright MCP server (skill: crownos-playwright)'
+fi
 cat <<CONTEXT
 This machine runs ${release:-CrownOS}. Desktop settings are RON files under ~/.config/crownos/,
 documented per key in /usr/share/doc/crownos/config/index.md (skill: crownos-config). Desktop apps
 go through the crownos-computer-use MCP server (skills: crownos-computer-use, crownos-browser,
-crownos-context); web pages through the playwright MCP server (skill: crownos-playwright); themes
-and plugins through crownplugin (skill: crownos-plugins).
+crownos-context); ${web}; themes and plugins through crownplugin (skill: crownos-plugins).
 CONTEXT
