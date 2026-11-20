@@ -9,8 +9,9 @@
 #                 tagged: the tag's run builds that ISO)
 #   v* tag        gate (no pinned component behind its default branch), resolve,
 #                 build and install-test the ISO, then in parallel: sign it and
-#                 publish it to SourceForge and the GitHub release, and promote the
-#                 exact repository it was built from to repo-<tag> and repo-stable;
+#                 publish it to SourceForge and the GitHub release (its body is
+#                 scripts/notes.sh), and promote the exact repository it was built
+#                 from, with its notes, to repo-<tag> and repo-stable;
 #                 then push the generated PKGBUILDs to Crown-OS/crownos-pkgbuilds
 #
 # Secrets:
@@ -38,6 +39,7 @@ on:
       - scripts/**
       - packaging/**
       - profile/**
+      - releases/**
       - justfile
       - .github/workflows/**
   workflow_dispatch:
@@ -221,10 +223,14 @@ jobs:
       SOURCEFORGE_PROJECT: crownos
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/download-artifact@v4
         with:
           name: iso
           path: out
+      - name: Release notes
+        run: scripts/notes.sh "${GITHUB_REF_NAME#v}" > "$RUNNER_TEMP/notes.md"
       - name: Sign
         env:
           SIGNING_KEY: ${{ secrets.CROWNOS_ISO_SIGNING_KEY }}
@@ -274,10 +280,12 @@ jobs:
         run: |
           iso=$(ls -- *.iso)
           # shellcheck disable=SC2016
-          notes=$(printf 'Download: [%s](%s)\n\nSigned with the CrownOS ISO key `%s`. To verify:\n\n```sh\ngpg --recv-keys %s\ngpg --verify %s.sig %s\n```\n' \
-            "$iso" "$ISO_URL" "$SIGNING_FINGERPRINT" "$SIGNING_FINGERPRINT" "$iso" "$iso")
+          printf 'Download: [%s](%s)\n\nSigned with the CrownOS ISO key `%s`. To verify:\n\n```sh\ngpg --recv-keys %s\ngpg --verify %s.sig %s\n```\n\n' \
+            "$iso" "$ISO_URL" "$SIGNING_FINGERPRINT" "$SIGNING_FINGERPRINT" "$iso" "$iso" > "$RUNNER_TEMP/body.md"
+          # GitHub refuses release bodies over 125,000 characters.
+          head -c 120000 -- "$RUNNER_TEMP/notes.md" >> "$RUNNER_TEMP/body.md"
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
-            --notes "$notes" --generate-notes -- *.sig *.sha256 SHA256SUMS
+            --notes-file "$RUNNER_TEMP/body.md" -- *.sig *.sha256 SHA256SUMS
       # SourceForge indexes an upload a few minutes after it lands and turns the
       # Release API away until then, so this retries until the project's best
       # release is the new ISO.

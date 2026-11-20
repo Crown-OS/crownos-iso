@@ -59,39 +59,45 @@ install_unattended() {
         die "the install failed; see $work/install.log"
 }
 
-# The installer ends by printing the recovery setup from inside the new system
-# (grep -H, btrfs subvolume get-default, ls of the ESP). Only that output is
-# matched: the logged commands never carry the path:content shape, and their
-# kernel paths follow a slash rather than the start of a line or a space.
+# The installer ends by printing the boot and update setup from inside the new
+# system (grep -H, systemctl is-enabled, btrfs subvolume get-default, ls of
+# EFI/CrownOS and EFI/refind). Only that output is matched: the logged commands
+# never carry the path:content shape, and their file names follow a slash
+# rather than the start of a line or a space.
 assert_installed_layout() {
     local log=$work/install.log expected
     local -a layout=(
-        '/efi/loader/loader.conf:timeout menu-hidden'
-        '/efi/loader/loader.conf:default crownos.conf'
-        '/efi/loader/entries/crownos-recover.conf:title   Recover the previous version'
+        '/efi/EFI/refind/refind.conf:timeout -1'
+        '/efi/EFI/refind/refind.conf:default_selection "CrownOS"'
+        '/efi/EFI/refind/refind.conf:include crownos-rollback.conf'
         '/etc/mkinitcpio.conf.d/crownos.conf:HOOKS=.*block crownos-recover filesystems .*'
         '/etc/snapper/configs/root:NUMBER_LIMIT="10"'
+        '/etc/pacman.conf:Server = https://repo.crownos.org/(v[0-9.]+|testing)/[$]arch'
         'crownos-recover-finish.service enabled'
+        'crownos-updated.service enabled'
         'path @'
-        'vmlinuz-linux-cachyos-previous'
-        'initramfs-linux-cachyos-previous.img'
+        'vmlinuz-linux-cachyos'
+        'initramfs-linux-cachyos.img'
+        'refind_x64.efi'
+        'rollback'
     )
     for expected in "${layout[@]}"; do
         grep -qE "(^|[[:space:]])${expected}[[:space:]]*$" "$log" ||
             die "the installed system lacks \`$expected\`; see $log"
     done
-    if grep -q 'loader.conf already exists' "$log"; then
-        die "the installer's loader.conf was not written; see $log"
-    fi
 }
 
 assert_booted_layout() {
     local log=$work/boot.log
     grep -q 'running hook \[crownos-recover\]' "$log" ||
         die "the installed initramfs did not run crownos-recover; see $log"
-    if grep -a 'Command line:' "$log" | grep -qE 'crownos\.recover|subvol(id)?='; then
+    local command_line
+    command_line=$(grep -a 'Command line:' "$log") || die "the installed kernel printed no command line; see $log"
+    if grep -qE 'crownos\.recover|subvol(id)?=' <<<"$command_line"; then
         die "the default boot entry names recovery or a subvolume; see $log"
     fi
+    grep -q 'root=PARTUUID=' <<<"$command_line" ||
+        die "the default boot entry does not name the root by PARTUUID; see $log"
 }
 
 boot_installed() {

@@ -1,6 +1,0 @@
-[Unit]
-Description=Check for a new CrownOS release
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/crownos-update-check

@@ -1,0 +1,9 @@
+[Trigger]
+Operation = Upgrade
+Type = Package
+Target = refind
+
+[Action]
+Description = Copying rEFInd to the EFI partition...
+When = PostTransaction
+Exec = /usr/bin/crownos-refind install

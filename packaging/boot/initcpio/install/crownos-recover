@@ -9,8 +9,8 @@ build() {
 
 help() {
     cat <<HELPEOF
-Rolls the root back to the version before the last update when the kernel
-command line carries crownos.recover, which the "Recover the previous version"
-boot entry does. Place it after 'block' and before 'filesystems'.
+Rolls the root back to snapper snapshot N when the kernel command line carries
+crownos.recover=N, which the rEFInd entry "Rollback to CrownOS <version>" does.
+Place it after 'block' and before 'filesystems'.
 HELPEOF
 }

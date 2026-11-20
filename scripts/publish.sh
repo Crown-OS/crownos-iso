@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Signs a resolved repository and publishes it as the testing channel, the
-# GitHub release repo-testing.
+# Signs a resolved repository and publishes it, with its manifest and release
+# notes, as the testing channel, the GitHub release repo-testing.
 #
 #   publish.sh testing REPO_DIR
 #
@@ -27,6 +27,8 @@ sign_packages "$repo_dir"
 rebuild_database "$repo_dir"
 "$root/scripts/manifest.sh" published "$channel" "$repo_dir" >"$staged/manifest.toml"
 sign_file "$staged/manifest.toml"
+"$root/scripts/notes.sh" "$(toml json "$staged/manifest.toml" | jq -r .version)" >"$staged/notes.md"
+sign_file "$staged/notes.md"
 
 publish_repository "$(release_tag "$channel")" "$repo_dir" "$staged"
 printf 'published %s\n' "$channel"

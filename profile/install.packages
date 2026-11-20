@@ -13,6 +13,7 @@ crownos-release
 crownos-keyring
 snapper
 snap-pac
+refind
 dosfstools
 e2fsprogs
 efibootmgr

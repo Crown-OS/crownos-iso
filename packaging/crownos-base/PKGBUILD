@@ -2,9 +2,10 @@
 # The CrownOS system defaults every install carries: the services the desktop
 # needs, the skel configs from config/, the CrownOS GTK and icon themes and
 # wallpapers, the launcher that opens the desktop when a user signs in on tty1,
-# the drive automounter's user unit and polkit rule, and the boot recovery files
-# from packaging/boot/. The components themselves are pinned in components.toml
-# and installed beside it, not pulled in here.
+# the drive automounter's user unit and polkit rule, the units of crownos-updated
+# and its notifier, and the boot recovery files from packaging/boot/. The
+# components themselves are pinned in components.toml and installed beside it,
+# not pulled in here.
 # scripts/manifest.sh passes the version in CROWNOS_VERSION and the
 # crownos-icon-theme checkout in CROWNOS_ICON_THEME. /etc/default/useradd
 # belongs to shadow, so crownos-base.install sets the default shell through
@@ -22,7 +23,7 @@ options=(!debug)
 replaces=(crownos-desktop)
 conflicts=(crownos-desktop)
 mapfile -t depends < <(grep -Ev '^[[:space:]]*(#|$)' "$startdir/../desktop.depends")
-depends+=(snapper snap-pac)
+depends+=(snapper snap-pac refind)
 
 _config=$startdir/../../config
 _boot=$startdir/../boot
@@ -37,8 +38,8 @@ package() {
     install -Dm644 -t "$pkgdir/usr/share/glib-2.0/schemas" "$startdir/90_crownos-theme.gschema.override"
     install -Dm644 -t "$pkgdir/usr/share/applications" "$startdir"/*.desktop
     install -Dm644 -t "$pkgdir/usr/share/libalpm/hooks" "$startdir"/*.hook
-    _package_appstore_data
     _package_automount
+    _package_updates
     install -Dm644 -t "$pkgdir/usr/share/polkit-1/actions" "$startdir"/*.policy "$startdir/windows-apps/org.crownos.windows-apps.policy" "$startdir/memory/org.crownos.memory.policy"
     install -Dm644 -t "$pkgdir/usr/share/dbus-1/system.d" "$startdir/process-monitor/org.crownos.ProcessMonitor1.conf"
     install -Dm644 -t "$pkgdir/usr/share/dbus-1/system-services" "$startdir/process-monitor/org.crownos.ProcessMonitor1.service"
@@ -52,12 +53,15 @@ package() {
     _package_boot_recovery
 }
 
-# The App Store's data files, until its release ships more than binaries
-# (docs/publishing.md). The timer is on for every user through timers.target.wants.
-_package_appstore_data() {
-    install -Dm644 -t "$pkgdir/usr/lib/systemd/user" "$startdir/crownos-update-check.service" "$startdir/crownos-update-check.timer"
-    install -d "$pkgdir/usr/lib/systemd/user/timers.target.wants"
-    ln -s ../crownos-update-check.timer "$pkgdir/usr/lib/systemd/user/timers.target.wants/crownos-update-check.timer"
+# crownos-updated and crownos-update-notify ship in crownos-update, which
+# packages only binaries (docs/publishing.md). The installer enables the daemon;
+# the notifier runs for every user through default.target.wants.
+_package_updates() {
+    install -Dm644 -t "$pkgdir/usr/lib/systemd/system" "$startdir/update/crownos-updated.service"
+    install -Dm644 -t "$pkgdir/usr/lib/systemd/user" "$startdir/update/crownos-update-notify.service"
+    install -d "$pkgdir/usr/lib/systemd/user/default.target.wants"
+    ln -s ../crownos-update-notify.service "$pkgdir/usr/lib/systemd/user/default.target.wants/crownos-update-notify.service"
+    install -Dm644 "$startdir/update/crownos.tmpfiles.conf" "$pkgdir/usr/lib/tmpfiles.d/crownos.conf"
 }
 
 # crownos-automount ships in crownos-diskmanager; it runs for every user

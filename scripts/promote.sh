@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Publishes the repository an ISO tag was built and tested from as the
-# immutable GitHub release repo-<tag> and as repo-stable. testing is never read.
+# Publishes the repository an ISO tag was built and tested from, with its
+# manifest and release notes, as the immutable GitHub release repo-<tag> and as
+# repo-stable. testing is never read.
 #
 #   promote.sh TAG REPO_DIR [--force-stable]
 #
@@ -63,6 +64,8 @@ rebuild_database "$repo_dir"
 "$root/scripts/manifest.sh" published stable "$repo_dir" >"$staged/manifest.toml"
 check_artifact_matches_tag "$staged/manifest.toml"
 sign_file "$staged/manifest.toml"
+"$root/scripts/notes.sh" "${tag#v}" >"$staged/notes.md"
+sign_file "$staged/notes.md"
 
 check_release_is_ours
 publish_repository "$archive_tag" "$repo_dir" "$staged"

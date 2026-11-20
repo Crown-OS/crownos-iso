@@ -62,10 +62,11 @@ sign iso="":
 reset-vm:
     rm -f target/disk.qcow2 target/OVMF_VARS.fd
 
-# Lint the scripts and PKGBUILDs and validate components.toml
+# Lint the scripts, PKGBUILDs and post-update scripts and validate components.toml
 check:
     for script in scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/*; do bash -n "$script" || exit 1; done
     shellcheck -x scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/*
+    for script in releases/*/post-update.sh; do if [ -e "$script" ]; then bash -n "$script" && shellcheck -s bash "$script" || exit 1; fi; done
     python3 -I scripts/toml.py json components.toml | python3 -I scripts/toml.py write | diff - components.toml
     scripts/manifest.sh names all >/dev/null
     test "$(vercmp 0.1.11.r7.gf66daf5 0.1.11)" = 1

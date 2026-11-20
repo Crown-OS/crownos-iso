@@ -16,38 +16,49 @@ Every channel is a GitHub release of Crown-OS/crownos-iso, signed with
 | `repo-<tag>` | immutable copy of what each tag shipped |
 
 Each holds, flat, the packages, their detached `.sig` files, `crownos.{db,files}`
-as real files (release assets have no symlinks), `manifest.toml(.sig)` and
-`crownos.asc`. None of them is ever the latest release, and their tags never
-match the `v*` triggers. `https://repo.crownos.org` is a Cloudflare redirect
-(302) onto the release downloads:
+as real files (release assets have no symlinks), `manifest.toml(.sig)`,
+`notes.md(.sig)` and `crownos.asc`. None of them is ever the latest release, and
+their tags never match the `v*` triggers. `https://repo.crownos.org` is a
+Cloudflare redirect (302) onto the release downloads. `<channel>` is `testing`,
+`stable` or a tag such as `v0.4.2`:
 
 | Request | Redirects to `https://github.com/Crown-OS/crownos-iso/releases/download/…` |
 |---|---|
 | `/<channel>/x86_64/<file>` | `repo-<channel>/<file>` |
 | `/<channel>/manifest.toml(.sig)` | `repo-<channel>/manifest.toml(.sig)` |
+| `/<channel>/notes.md(.sig)` | `repo-<channel>/notes.md(.sig)` |
 | `/crownos.asc` | `repo-stable/crownos.asc` |
 
-`repo-<tag>` is not behind the domain; point `Server` at its release download to
-pin a system to an old release. Installed systems use
+An installed system is pinned to the release it runs. The installer writes the
+channel of the installed release (`testing` for a testing build):
 
 ```
 [crownos]
 SigLevel = Required DatabaseOptional
-Server = https://repo.crownos.org/stable/$arch
+Server = https://repo.crownos.org/v<installed>/$arch
 ```
+
+Because of this, a plain `pacman -Syu` does not install packages of a newer
+CrownOS release. Only `crownos-updated` changes this line: after a successful
+update it writes the channel of the release it installed. It reads the index
+channel (`stable`, or `testing` for a testing install) only to find the next
+release.
 
 A published `manifest.toml` names the release and the set an installed system
 must have:
 
 ```toml
-version = "0.1.12"
+version = "0.4.2"
 build_id = "<crownos-iso commit>"
-channel = "stable"
-packages = ["crownpositor", "crownbar", ...]   # what to sync: system packages only
+channel = "stable"                           # testing builds: "testing"
+restart = "soft-reboot"                      # session | soft-reboot | reboot
+notes = "notes.md"                           # the file beside the manifest
+releases = ["0.1.0", "0.1.2", ..., "0.4.2"]  # every v* tag up to version
+packages = ["crownpositor", "crownbar", ...] # what to sync: system packages only
 
 [[package]]
 name = "crownbar"
-version = "0.3.0-1"                            # one per package in the repository
+version = "0.4.0-1"                          # one per package in the repository
 ```
 
 `version` and `build_id` are read from the `crownos-release` package in the
@@ -55,13 +66,21 @@ repository, so the manifest always describes the bytes beside it. Testing builds
 are versioned `X.Y.Z.rN.g<sha>` (N commits after tag vX.Y.Z), which `vercmp`
 orders above vX.Y.Z and below the next tag.
 
+- `restart` comes from `releases/<version>/release.toml` (see Releases). A
+  testing build without that file gets `reboot`.
+- `releases` is the order in which installed systems update. `crownos-updated`
+  installs only the first release that is newer than the installed one, so it
+  never skips a release. A testing build adds its own version at the end.
+- `notes` names `notes.md`, which `scripts/notes.sh` writes and the publish
+  scripts sign beside the manifest.
+
 ## Flow (.github/workflows/release.yml)
 
 | Event | Jobs |
 |---|---|
 | pull request | `check`: `just check`, then `manifest.sh resolve`; nothing is signed or uploaded |
 | push to main | `resolve` (resolve, sign, publish `repo-testing`) → `build` → `install-test`; the ISO is skipped when the commit is tagged, since the tag's run builds it |
-| `v*` tag | `resolve` (`gate.sh` first, nothing published) → `build` → `install-test` → `publish` (ISO to SourceForge and the GitHub release) ∥ `promote` (the tested repository to `repo-<tag>` and `repo-stable`) → `pkgbuilds` |
+| `v*` tag | `resolve` (`gate.sh` first, nothing published) → `build` → `install-test` → `publish` (ISO to SourceForge and the GitHub release, with `notes.sh` as its body) ∥ `promote` (the tested repository and its notes to `repo-<tag>` and `repo-stable`) → `pkgbuilds` |
 | `component-updated` dispatch | `bump.yml` opens a pull request pinning the release |
 
 Main pushes publish testing one at a time (`crownos-testing` concurrency group);
@@ -71,6 +90,46 @@ promotions are serialized on `crownos-stable`. A tag run never writes testing.
 the same build continues where it stopped, another build for a published tag is
 refused, and a stable that already holds a newer version is left alone
 (`promote.sh TAG DIR --force-stable` rolls stable back on purpose).
+
+## Releases
+
+Each release has a directory `releases/<X.Y.Z>/` (see `releases/README.md`).
+Write it in the pull request before the tag.
+
+| File | Required | Use |
+|---|---|---|
+| `release.toml` | yes | `restart = "session" \| "soft-reboot" \| "reboot"`, copied into the manifest |
+| `notes.md` | yes | the hand-written highlights |
+| `post-update.sh` | no | `crownos-release` installs it as `/usr/lib/crownos/post-update` |
+
+- On a tag, `gate.sh` stops the build when `release.toml` or `notes.md` is
+  missing, when `restart` is not one of the three values, or when
+  `post-update.sh` fails `bash -n`. `just check` lints each `post-update.sh`
+  with `bash -n` and shellcheck.
+- `scripts/notes.sh <version>` writes the release notes: `notes.md` (or a short
+  header for a testing build), then `## Components` with one section for each
+  component whose pin changed since the previous `v*` tag. Each section holds
+  the component's GitHub release notes. The publish scripts sign the result as
+  `notes.md` beside the manifest, and the tag's GitHub release uses it as its
+  body. The kernel is not in the list.
+- `crownos-updated` runs `/usr/lib/crownos/post-update` as root after the pacman
+  transaction, with `CROWNOS_FROM_VERSION` and `CROWNOS_TO_VERSION`. When it
+  fails, the update fails. Every local user can see its output in the update
+  state, so it must not print secrets. The daemon runs a failed script again,
+  so each script must be safe to run more than one time.
+- A tagged install steps through the tags one at a time. A testing install
+  follows the testing channel: its next release is the current testing build.
+- The restart kinds: `session` restarts the desktop (the compositor exits with
+  status 75 and `crownos-desktop` starts it again), `soft-reboot` restarts all
+  user space (`systemctl soft-reboot`), `reboot` restarts the computer.
+
+Before each update `crownos-updated` takes a snapper snapshot, keeps the
+current kernel pair in `EFI/CrownOS/rollback/` (`crownos-esp-kernel keep`) and
+writes `EFI/refind/crownos-rollback.conf`. To go back, hold Space while the
+computer starts and choose "Rollback to CrownOS <from>". The initramfs hook
+`crownos-recover` then makes a writable copy of that snapshot the root, and
+`crownos-recover-finish.service` copies the kept kernel pair back
+(`crownos-esp-kernel restore`).
 
 ## components.toml
 
@@ -119,7 +178,8 @@ comments are not kept.
 | `manifest.sh resolve DIR` | downloads, verifies and builds every package into DIR, indexed unsigned |
 | `manifest.sh published CHANNEL DIR` | prints the published manifest for DIR |
 | `pin.sh` | the only writer of `components.toml` |
-| `gate.sh` | fails if a pinned repository's default branch is ahead of its tag |
+| `gate.sh` | fails if a pinned repository's default branch is ahead of its tag; on a tag, also checks `releases/<version>/` |
+| `notes.sh VERSION` | prints the release notes of VERSION |
 | `publish.sh testing DIR` | signs DIR and uploads it as `repo-testing` |
 | `promote.sh TAG DIR` | signs DIR and uploads it as `repo-TAG` and `repo-stable` |
 | `gen-pkgbuilds.sh DIR OUT` | writes the crownos-source PKGBUILDs |
@@ -149,8 +209,8 @@ crownos-iso (`github.token` in CI).
 
 | Package | Holds |
 |---|---|
-| `crownos-base` | what the old `crownos-desktop` meta installed except the components: skel configs, GTK and icon themes, wallpapers, `.desktop` files, polkit policies, D-Bus services, the tty launcher, the windows-apps and memory helpers, fontconfig; depends on `desktop.depends`, `snapper`, `snap-pac`; ships `packaging/boot/` (pacman hooks, initcpio hooks, helpers, systemd units, `/etc/snapper/configs/root`) |
-| `crownos-release` | `/usr/lib/crownos/os-release` and a pacman hook copying it over `/usr/lib/os-release` |
+| `crownos-base` | what the old `crownos-desktop` meta installed except the components: skel configs, GTK and icon themes, wallpapers, `.desktop` files, polkit policies, D-Bus services, the tty launcher, the windows-apps and memory helpers, fontconfig, the `crownos-updated` and `crownos-update-notify` units and `/usr/lib/tmpfiles.d/crownos.conf`; depends on `desktop.depends`, `snapper`, `snap-pac`, `refind`; ships `packaging/boot/` (pacman hooks, initcpio hooks, helpers, systemd units, `/etc/snapper/configs/root`) |
+| `crownos-release` | `/usr/lib/crownos/os-release`, a pacman hook copying it over `/usr/lib/os-release`, and `/usr/lib/crownos/post-update` when the release has a `post-update.sh` |
 | `crownos-keyring` | the repository key for `pacman-key --populate crownos` |
 | `crownos-source` | opt-in: `-march=native` and paru's `[crownos-src]` |
 | `crownos-yazi` | the Yazi plugins pinned in `config/yazi/package.toml`, fetched with `ya pkg install` into `/etc/skel/.config/yazi/plugins`; depends on the tools those plugins call |
@@ -169,24 +229,28 @@ and `mkarchiso` take no snapshots. The installer appends `root` to
 
 ### File ownership while component packages carry only binaries
 
-The shared `arch-package.yml` packages only `usr/bin/*`. Until crownos-appstore's
-release ships its own data, `crownos-base` keeps:
+The shared `arch-package.yml` packages only `usr/bin/*`. Until the component
+releases ship their own data, `crownos-base` keeps:
 
 | File | Owner today | Moves to |
 |---|---|---|
 | `/usr/share/applications/crownappstore.desktop` | crownos-base | crownos-appstore |
-| `/usr/share/applications/crownappstore-updates.desktop` | crownos-base | crownos-appstore |
 | `/usr/share/polkit-1/actions/org.crownos.appstore.policy` | crownos-base | crownos-appstore |
-| `/usr/lib/systemd/user/crownos-update-check.service` | crownos-base | crownos-appstore |
-| `/usr/lib/systemd/user/crownos-update-check.timer` and its `timers.target.wants` link | crownos-base | crownos-appstore |
+| `/usr/lib/systemd/system/crownos-updated.service` | crownos-base | crownos-update |
+| `/usr/lib/systemd/user/crownos-update-notify.service` and its `default.target.wants` link | crownos-base | crownos-update |
+| `/usr/lib/tmpfiles.d/crownos.conf` (`/run/crownos`, 0755) | crownos-base | crownos-update |
+| `/usr/share/applications/crownos-settings-updates.desktop` | crownos-base | crownos-settings |
 
-Each copy in `packaging/crownos-base/` is byte-identical to the file under
-`crownos-appstore/data/`. The pull request that pins a data-carrying
-crownos-appstore must drop them all from `packaging/crownos-base/` in the same
-change, or pacman reports a file conflict. The binaries (`crownos-appstore`,
-`crownos-appstore-helper`, `crownos-system-update`, `crownos-update-check`) need
-no such step: the shared workflow packages every cargo bin target, so they
-arrive with the next crownos-appstore tag that is pinned.
+The crownos-appstore files in `packaging/crownos-base/` are byte-identical to
+the files under `crownos-appstore/data/`. The pull request that pins a release
+that carries one of these files must drop it from `packaging/crownos-base/` in
+the same change, or pacman reports a file conflict. The binaries need no such
+step: the shared workflow packages every cargo bin target, so they arrive with
+the next tag that is pinned.
+
+The App Store no longer updates the system. `crownappstore-updates.desktop`,
+`crownos-update-check.service` and `crownos-update-check.timer` are gone; Settings
+→ System Updates is the only place to update CrownOS.
 
 `crownos-base` no longer depends on the components, so nothing orders snapd
 before it in a pacstrap. Its `crownos-snapd-socket.hook` enables `snapd.socket`
@@ -209,7 +273,7 @@ pointer here while `packaging/crownos-keyring/crownos.gpg` is missing.
    ```
 
 1. **Cloudflare redirect.** In the `crownos.org` zone add a proxied
-   `AAAA repo 100::` record (no origin; the redirect answers first) and three
+   `AAAA repo 100::` record (no origin; the redirect answers first) and four
    Single Redirect rules, 302, query string not preserved:
 
    | When the request URL matches (wildcard) | Redirect to |
@@ -217,6 +281,7 @@ pointer here while `packaging/crownos-keyring/crownos.gpg` is missing.
    | `https://repo.crownos.org/*/x86_64/*` | `https://github.com/Crown-OS/crownos-iso/releases/download/repo-${1}/${2}` |
    | `https://repo.crownos.org/*/manifest.toml*` | `https://github.com/Crown-OS/crownos-iso/releases/download/repo-${1}/manifest.toml${2}` |
    | `https://repo.crownos.org/crownos.asc` | `https://github.com/Crown-OS/crownos-iso/releases/download/repo-stable/crownos.asc` |
+   | `https://repo.crownos.org/*/notes.md*` | `https://github.com/Crown-OS/crownos-iso/releases/download/repo-${1}/notes.md${2}` |
 
 2. **crownos-iso secrets and variables** (Settings → Secrets and variables → Actions):
 
@@ -245,6 +310,15 @@ pointer here while `packaging/crownos-keyring/crownos.gpg` is missing.
    `packages` first. The pull request that switches to `components.toml` then
    pins that installer tag, so `install-test` is green on the first main run.
    Until both are in, `install-test` is red by construction.
+
+## Installs from before crownos-updated
+
+Systems installed from a `v0.1.x` ISO use systemd-boot, have
+`Server = https://repo.crownos.org/stable/$arch` and do not run
+`crownos-updated`. They cannot use Settings → System Updates. A plain
+`pacman -Syu` on such a system can install more than one release at a time and
+gives no rollback entry. There is no automatic migration: to use the new flow,
+install CrownOS again from a current ISO.
 
 ## Using the repository on an existing Arch install
 

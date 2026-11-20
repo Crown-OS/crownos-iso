@@ -127,13 +127,18 @@ published() {
     local channel=${1:?published needs CHANNEL} repo_dir=${2:?published needs REPO_DIR}
     [[ $channel == @(testing|stable) ]] || die "the channel is testing or stable, not $channel"
     validate
-    local name versions=()
+    local name versions=() version build_id restart releases
     while read -r name; do
         versions+=("$name" "$(package_version "$(package_file "$repo_dir" "$name")")")
     done < <(names all)
-    jq -n --arg version "$(release_field "$repo_dir" VERSION_ID)" --arg build_id "$(release_field "$repo_dir" BUILD_ID)" \
-        --arg channel "$channel" --argjson system "$(names system | jq -R . | jq -s .)" '
-        {version: $version, build_id: $build_id, channel: $channel, packages: $system,
+    version=$(release_field "$repo_dir" VERSION_ID)
+    build_id=$(release_field "$repo_dir" BUILD_ID)
+    restart=$(release_restart "$version" "$channel")
+    releases=$(release_chain "$version" | jq -R . | jq -s .)
+    jq -n --arg version "$version" --arg build_id "$build_id" --arg channel "$channel" --arg restart "$restart" \
+        --argjson releases "$releases" --argjson system "$(names system | jq -R . | jq -s .)" '
+        {version: $version, build_id: $build_id, channel: $channel, restart: $restart, notes: "notes.md",
+         releases: $releases, packages: $system,
          package: [$ARGS.positional as $pairs | range(0; $pairs | length; 2) | {name: $pairs[.], version: $pairs[. + 1]}]}' --args "${versions[@]}" |
         toml write --bare
 }

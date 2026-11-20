@@ -1,0 +1,17 @@
+[Unit]
+Description=CrownOS system updates
+After=network-online.target
+Wants=network-online.target
+RequiresMountsFor=/efi
+
+[Service]
+ExecStart=/usr/bin/crownos-updated
+RuntimeDirectory=crownos/update
+StateDirectory=crownos/update
+Restart=on-failure
+RestartSec=5
+KillMode=mixed
+TimeoutStopSec=30min
+
+[Install]
+WantedBy=multi-user.target

@@ -101,13 +101,14 @@ sync_release() {
     done
 }
 
-# Publishes REPO_DIR and the signed manifest in STAGED as the release TAG.
+# Publishes REPO_DIR and the signed manifest and notes in STAGED as the release
+# TAG. The notes go up before the manifest that names them.
 publish_repository() {
     local tag=$1 repo_dir=$2 staged=$3
     gpg --armor --export "${GPGKEY:?}" >"$staged/crownos.asc"
     ensure_release "$tag"
     sync_release "$tag" "$repo_dir"/*.pkg.tar.zst "$repo_dir"/*.pkg.tar.zst.sig "$repo_dir"/crownos.{db,files}* \
-        "$staged"/manifest.toml{,.sig} "$staged/crownos.asc"
+        "$staged"/notes.md{,.sig} "$staged"/manifest.toml{,.sig} "$staged/crownos.asc"
 }
 
 manifest_published() {

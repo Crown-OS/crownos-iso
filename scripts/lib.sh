@@ -46,6 +46,31 @@ iso_version() {
 
 build_id() { git -C "$root" rev-parse HEAD; }
 
+# Every release an installed system steps through up to VERSION, oldest first.
+release_chain() {
+    local version=$1 tag last=''
+    require_tools vercmp
+    while read -r tag; do
+        (($(vercmp "${tag#v}" "$version") <= 0)) || continue
+        last=${tag#v}
+        printf '%s\n' "$last"
+    done < <(git -C "$root" tag --list 'v[0-9]*' --sort=version:refname)
+    [[ $last == "$version" ]] || printf '%s\n' "$version"
+}
+
+release_restart() {
+    local version=$1 channel=$2 file=$root/releases/$1/release.toml restart
+    if [[ ! -e $file ]]; then
+        [[ $channel == testing ]] || die "releases/$version/release.toml is missing; a stable release needs it (releases/README.md)"
+        echo reboot
+        return
+    fi
+    restart=$(toml json "$file" | jq -r '.restart // empty') || die "cannot read releases/$version/release.toml"
+    [[ $restart == @(session|soft-reboot|reboot) ]] ||
+        die "releases/$version/release.toml: restart is session, soft-reboot or reboot, not '$restart'"
+    printf '%s\n' "$restart"
+}
+
 default_channel() {
     if git -C "$root" describe --tags --exact-match --match 'v[0-9]*' >/dev/null 2>&1; then
         echo stable

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=System Updates
+Comment=Open Settings on System Updates
+Exec=crownsettings updates
+Icon=system-software-update
+Terminal=false
+NoDisplay=true
+Categories=Settings;System;

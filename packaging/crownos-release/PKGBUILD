@@ -3,6 +3,8 @@
 # this ships its own copy and a hook writes it over filesystem's after every
 # transaction that touches either package. scripts/manifest.sh passes the ISO
 # version in CROWNOS_VERSION and the crownos-iso commit in CROWNOS_BUILD_ID.
+# releases/<version>/post-update.sh, when the release has one, becomes
+# /usr/lib/crownos/post-update, which crownos-updated runs after the update.
 
 pkgname=crownos-release
 pkgver=${CROWNOS_VERSION:?}
@@ -12,6 +14,8 @@ arch=(any)
 url='https://github.com/Crown-OS/crownos-iso'
 license=(MIT)
 options=(!debug)
+
+_post_update=$startdir/../../releases/$pkgver/post-update.sh
 
 package() {
     install -d "$pkgdir/usr/lib/crownos"
@@ -26,4 +30,7 @@ HOME_URL=https://crownos.org
 LOGO=crownos
 OS_RELEASE
     install -Dm644 -t "$pkgdir/usr/share/libalpm/hooks" "$startdir/crownos-os-release.hook"
+    if [[ -e $_post_update ]]; then
+        install -Dm755 "$_post_update" "$pkgdir/usr/lib/crownos/post-update"
+    fi
 }

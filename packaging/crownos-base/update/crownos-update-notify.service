@@ -1,0 +1,11 @@
+[Unit]
+Description=Tell the user about a new CrownOS release
+ConditionPathExists=!/run/archiso
+
+[Service]
+ExecStart=/usr/bin/crownos-update-notify
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=default.target

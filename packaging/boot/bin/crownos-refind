@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Copies the rEFInd that pacman installed to the EFI partition after a refind
+# upgrade. EFI/BOOT/BOOTX64.EFI gets the new copy only when it is byte-identical
+# to the old EFI/refind/refind_x64.efi: then the installer put it there. On a
+# shared EFI partition it belongs to another system and is left alone.
+#
+#   crownos-refind install
+#
+# CROWNOS_ESP overrides the EFI mount point (/efi).
+
+set -euo pipefail
+
+esp=${CROWNOS_ESP:-/efi}
+packaged=/usr/share/refind/refind_x64.efi
+installed=$esp/EFI/refind/refind_x64.efi
+fallback=$esp/EFI/BOOT/BOOTX64.EFI
+
+die() {
+    printf 'crownos-refind: %s\n' "$*" >&2
+    exit 1
+}
+
+replace_file() {
+    if ! cp -- "$packaged" "$1.tmp" || ! mv -f -- "$1.tmp" "$1"; then
+        rm -f -- "$1.tmp"
+        die "could not write $1"
+    fi
+}
+
+install_refind() {
+    mountpoint -q -- "$esp" || die "$esp is not mounted; the EFI partition was left alone"
+    if [[ ! -e $installed ]]; then
+        printf 'crownos-refind: %s is missing; this system does not boot with rEFInd\n' "$installed"
+        return
+    fi
+    local owns_fallback=false
+    if cmp -s -- "$installed" "$fallback"; then
+        owns_fallback=true
+    fi
+    replace_file "$installed"
+    if $owns_fallback; then
+        replace_file "$fallback"
+    fi
+}
+
+case ${1:-} in
+install) install_refind ;;
+*)
+    printf 'usage: %s install\n' "${0##*/}" >&2
+    exit 64
+    ;;
+esac

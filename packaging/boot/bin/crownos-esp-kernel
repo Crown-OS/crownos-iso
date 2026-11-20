@@ -1,22 +1,21 @@
 #!/usr/bin/env bash
-# Keeps the kernel and initramfs systemd-boot reads on the EFI partition, and
-# the copy "Recover the previous version" boots.
+# Keeps the kernel and initramfs that rEFInd boots on the EFI partition, and the
+# copy in rollback/ that the "Rollback to CrownOS <version>" entry boots.
 #
-#   crownos-esp-kernel seed     current -> previous; fails when the current pair
-#                               is missing, and drops a copy it cannot refresh
-#   crownos-esp-kernel rotate   seed, run before every pacman transaction; never
-#                               fails one
+#   crownos-esp-kernel keep     current -> rollback/; crownos-updated runs it
+#                               before an update and stops when it fails
 #   crownos-esp-kernel install  /boot/vmlinuz-$kernel -> the EFI partition
-#   crownos-esp-kernel restore  previous -> current, after a recovery boot;
+#   crownos-esp-kernel restore  rollback/ -> current, after a rollback boot;
 #                               never removes the current pair
 #
-# CROWNOS_ESP and CROWNOS_KERNEL override the EFI mount point and the kernel.
+# CROWNOS_ESP and CROWNOS_KERNEL override the EFI mount point (/efi) and the kernel.
 
 set -euo pipefail
 
 kernel=${CROWNOS_KERNEL:-linux-cachyos}
-esp=${CROWNOS_ESP:-$(bootctl --print-esp-path 2>/dev/null || echo /efi)}
+esp=${CROWNOS_ESP:-/efi}
 dir=$esp/EFI/CrownOS
+rollback_dir=$dir/rollback
 
 warn() { printf 'crownos-esp-kernel: %s\n' "$*" >&2; }
 die() {
@@ -25,7 +24,7 @@ die() {
 }
 
 images() {
-    printf '%s\n' "$dir/vmlinuz-$kernel$1" "$dir/initramfs-$kernel$1.img"
+    printf '%s\n' "$1/vmlinuz-$kernel" "$1/initramfs-$kernel.img"
 }
 
 total_size() {
@@ -60,15 +59,15 @@ make_room() {
         return 0
     fi
     if [[ $removable == replace ]] && ((available + replaced >= pairs * need)); then
-        warn "removing the previous copy to make room"
+        warn "removing the old rollback copy to make room"
         rm -f -- "${targets[@]}"
         return 0
     fi
     return 1
 }
 
-# Copies the pair with suffix $1 over the pair with suffix $2; $3 is `adding`
-# for current -> previous and `replacing` for previous -> current.
+# Copies the pair in directory $1 over the pair in directory $2; $3 is `adding`
+# for current -> rollback and `replacing` for rollback -> current.
 #   0  copied, or already identical
 #   2  no room
 #   3  the source pair is incomplete
@@ -80,7 +79,7 @@ copy_pair() {
     mapfile -t targets < <(images "$to")
     [[ -e ${sources[0]} && -e ${sources[1]} ]] || return 3
     if cmp -s -- "${sources[0]}" "${targets[0]}" && cmp -s -- "${sources[1]}" "${targets[1]}"; then
-        printf 'the %s%s pair is unchanged\n' "$kernel" "$to"
+        printf 'the %s pair in %s is unchanged\n' "$kernel" "$to"
         return 0
     fi
     case $how in
@@ -101,29 +100,17 @@ copy_pair() {
     done
 }
 
-# A recovery copy that no longer matches the current system is worse than none:
-# the recovery entry would boot it against a root it was never installed on.
-drop_previous() {
-    local -a previous
-    mapfile -t previous < <(images "-previous")
-    rm -f -- "${previous[@]}" "${previous[0]}.tmp" "${previous[1]}.tmp"
-    die "$1; 'Recover the previous version' is unavailable until the next update"
-}
-
-seed() {
+keep() {
     require_esp
+    mkdir -p -- "$rollback_dir"
     local status=0
-    copy_pair "" "-previous" adding || status=$?
+    copy_pair "$dir" "$rollback_dir" adding || status=$?
     case $status in
     0) ;;
-    2) drop_previous "the EFI partition is too small to keep a recovery copy" ;;
-    3) die "the current kernel pair is missing from $dir; there is nothing to keep for recovery" ;;
-    *) drop_previous "copying the current kernel pair failed" ;;
+    2) die "the EFI partition has no room to keep a rollback copy" ;;
+    3) die "the current kernel pair is missing from $dir; there is nothing to keep" ;;
+    *) die "copying the current kernel pair failed; $rollback_dir may hold a mismatched pair" ;;
     esac
-}
-
-rotate() {
-    (seed) || warn "the recovery copy was not refreshed; this transaction continues"
 }
 
 install_kernel() {
@@ -134,22 +121,21 @@ install_kernel() {
 restore() {
     require_esp
     local status=0
-    copy_pair "-previous" "" replacing || status=$?
+    copy_pair "$rollback_dir" "$dir" replacing || status=$?
     case $status in
     0) ;;
-    2) die "the EFI partition has no room to restore the previous kernel" ;;
-    3) die "there is no complete previous kernel pair in $dir to restore" ;;
-    *) die "restoring the previous kernel pair failed; $dir may hold a mismatched pair" ;;
+    2) die "the EFI partition has no room to restore the rollback kernel" ;;
+    3) die "there is no complete kernel pair in $rollback_dir to restore" ;;
+    *) die "restoring the rollback kernel pair failed; $dir may hold a mismatched pair" ;;
     esac
 }
 
 case ${1:-} in
-seed) seed ;;
-rotate) rotate ;;
+keep) keep ;;
 install) install_kernel ;;
 restore) restore ;;
 *)
-    printf 'usage: %s seed|rotate|install|restore\n' "${0##*/}" >&2
+    printf 'usage: %s keep|install|restore\n' "${0##*/}" >&2
     exit 64
     ;;
 esac

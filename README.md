@@ -6,6 +6,7 @@ as GitHub releases of this repository, served at `https://repo.crownos.org`.
 - `components.toml` pins every CrownOS package (change it with `just pin`).
 - `packaging/` builds `crownos-base`, `crownos-release`, `crownos-keyring` and `crownos-source`.
 - `profile/` is the archiso profile; `config/` holds the default user configs.
+- `releases/<X.Y.Z>/` holds the restart kind, notes and post-update script of each release.
 
 ```sh
 just check            # lint and validate
