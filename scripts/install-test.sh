@@ -91,8 +91,11 @@ assert_booted_layout() {
     local log=$work/boot.log
     grep -q 'running hook \[crownos-recover\]' "$log" ||
         die "the installed initramfs did not run crownos-recover; see $log"
+    # rEFInd prints the options it hands the kernel as "Using load options";
+    # the kernel's own "Command line:" line stays in its log buffer on this path.
     local command_line
-    command_line=$(grep -a 'Command line:' "$log") || die "the installed kernel printed no command line; see $log"
+    command_line=$(grep -aE "Command line:|Using load options '" "$log") ||
+        die "neither rEFInd nor the installed kernel printed the command line; see $log"
     if grep -qE 'crownos\.recover|subvol(id)?=' <<<"$command_line"; then
         die "the default boot entry names recovery or a subvolume; see $log"
     fi
