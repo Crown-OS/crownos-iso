@@ -72,6 +72,14 @@ jobs:
         with:
           repository: Crown-OS/crownos-icon-theme
           path: crownos-icon-theme
+      - uses: actions/checkout@v7
+        with:
+          repository: Crown-OS/crownos-plugins
+          path: siblings/crownos-plugins
+      - uses: actions/checkout@v7
+        with:
+          repository: Crown-OS/crownos-config
+          path: siblings/crownos-config
       - name: Build user
         run: &builder |
           useradd --create-home builder
@@ -86,7 +94,7 @@ jobs:
       - name: Lint and validate
         run: as-builder just check
       - name: Resolve the manifest
-        run: as-builder scripts/manifest.sh resolve target/repo --icon-theme "$GITHUB_WORKSPACE/crownos-icon-theme"
+        run: as-builder scripts/manifest.sh resolve target/repo --icon-theme "$GITHUB_WORKSPACE/crownos-icon-theme" --siblings "$GITHUB_WORKSPACE/siblings"
 
   resolve:
     if: github.event_name != 'pull_request'
@@ -109,13 +117,21 @@ jobs:
         with:
           repository: Crown-OS/crownos-icon-theme
           path: crownos-icon-theme
+      - uses: actions/checkout@v7
+        with:
+          repository: Crown-OS/crownos-plugins
+          path: siblings/crownos-plugins
+      - uses: actions/checkout@v7
+        with:
+          repository: Crown-OS/crownos-config
+          path: siblings/crownos-config
       - name: Build user
         run: *builder
       - name: Gate stale components
         if: github.ref_type == 'tag'
         run: as-builder scripts/gate.sh
       - name: Resolve the manifest
-        run: as-builder scripts/manifest.sh resolve target/repo --icon-theme "$GITHUB_WORKSPACE/crownos-icon-theme"
+        run: as-builder scripts/manifest.sh resolve target/repo --icon-theme "$GITHUB_WORKSPACE/crownos-icon-theme" --siblings "$GITHUB_WORKSPACE/siblings"
       # Always, also when HEAD is tagged: testing then carries X.Y.Z. If the tag
       # reached GitHub after this checkout, testing holds the .rN.g<sha> form
       # until the workflow runs on main again.

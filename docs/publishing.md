@@ -175,7 +175,7 @@ comments are not kept.
 | Script | Does |
 |---|---|
 | `manifest.sh names system\|live\|optional\|all` | lists and validates |
-| `manifest.sh resolve DIR` | downloads, verifies and builds every package into DIR, indexed unsigned |
+| `manifest.sh resolve DIR [--icon-theme CHECKOUT] [--siblings DIR]` | downloads, verifies and builds every package into DIR, indexed unsigned; the siblings directory holds the `crownos-plugins` and `crownos-config` checkouts that `crownos-agent-skills` reads (CI checks them out under `siblings/`) |
 | `manifest.sh published CHANNEL DIR` | prints the published manifest for DIR |
 | `pin.sh` | the only writer of `components.toml` |
 | `gate.sh` | fails if a pinned repository's default branch is ahead of its tag; on a tag, also checks `releases/<version>/` |

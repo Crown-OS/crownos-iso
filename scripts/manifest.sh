@@ -2,7 +2,7 @@
 # Reads components.toml, the manifest of every CrownOS package.
 #
 #   manifest.sh names system|live|optional|all
-#   manifest.sh resolve REPO_DIR [--icon-theme CHECKOUT]
+#   manifest.sh resolve REPO_DIR [--icon-theme CHECKOUT] [--siblings DIR]
 #   manifest.sh published CHANNEL REPO_DIR
 #
 # names      the package names an install path takes: system is what every
@@ -10,7 +10,9 @@
 #            optional is opt-in, all is everything; it validates the manifest
 # resolve    fills REPO_DIR with every package: release assets are downloaded
 #            and checked against their sha256, source entries are built with
-#            makepkg at the ISO version; then indexes it unsigned
+#            makepkg at the ISO version; then indexes it unsigned. DIR holds the
+#            sibling checkouts crownos-agent-skills reads (crownos-plugins,
+#            crownos-config); it defaults to the workspace above this repository
 # published  prints the manifest a channel publishes for the packages in REPO_DIR
 
 set -euo pipefail
@@ -64,20 +66,21 @@ fetch_release() {
 }
 
 build_source() {
-    local repo_dir=$1 source=$2 icon_theme=$3 version id
+    local repo_dir=$1 source=$2 icon_theme=$3 siblings=$4 version id
     version=$(iso_version) id=$(build_id)
     (cd -- "$root/$source" && BUILDDIR=$root/target/build PKGDEST=$repo_dir SRCDEST=$root/target/src \
         CROWNOS_VERSION=$version CROWNOS_BUILD_ID=$id CROWNOS_ICON_THEME=$icon_theme \
-        CROWNOS_SIBLINGS=$(realpath -- "$root/..") \
+        CROWNOS_SIBLINGS=$siblings \
         makepkg --force --nodeps --cleanbuild --noconfirm)
 }
 
 resolve() {
-    local repo_dir=${1:?resolve needs REPO_DIR} icon_theme=$root/../crownos-icon-theme
+    local repo_dir=${1:?resolve needs REPO_DIR} icon_theme=$root/../crownos-icon-theme siblings=$root/..
     shift
     while (($#)); do
         case $1 in
             --icon-theme) icon_theme=${2:?--icon-theme needs a checkout}; shift 2 ;;
+            --siblings) siblings=${2:?--siblings needs a directory}; shift 2 ;;
             *) die "unknown argument: $1" ;;
         esac
     done
@@ -87,6 +90,9 @@ resolve() {
         die "packaging/crownos-keyring/crownos.gpg is missing: run scripts/export-key.sh packages@crownos.org (docs/publishing.md, one-time setup)"
     [[ -x $icon_theme/install.sh ]] || die "no crownos-icon-theme checkout at $icon_theme"
     icon_theme=$(realpath -- "$icon_theme")
+    [[ -f $siblings/crownos-plugins/skill/SKILL.md && -f $siblings/crownos-config/docs/config/index.md ]] ||
+        die "no crownos-plugins and crownos-config checkouts under $siblings (packaging/crownos-agent-skills/README.md)"
+    siblings=$(realpath -- "$siblings")
     mkdir -p -- "$repo_dir"
     repo_dir=$(realpath -- "$repo_dir")
     find "$repo_dir" -mindepth 1 -delete
@@ -95,7 +101,7 @@ resolve() {
     while read -r entry; do
         source=$(jq -r '.source // empty' <<<"$entry")
         if [[ -n $source ]]; then
-            build_source "$repo_dir" "$source" "$icon_theme"
+            build_source "$repo_dir" "$source" "$icon_theme" "$siblings"
         else
             fetch_release "$repo_dir" "$entry"
         fi
