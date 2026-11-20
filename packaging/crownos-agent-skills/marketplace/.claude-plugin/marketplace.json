@@ -1,16 +1,24 @@
 {
   "name": "crownos",
-  "owner": { "name": "CrownOS", "url": "https://github.com/Crown-OS" },
+  "owner": {
+    "name": "CrownOS",
+    "url": "https://github.com/Crown-OS"
+  },
   "description": "Plugins CrownOS preinstalls for Claude Code.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "plugins": [
     {
       "name": "crownos",
       "source": "./plugins/crownos",
-      "description": "CrownOS desktop: settings reference, computer use, browser control, context engine and desktop notifications.",
-      "version": "0.1.0",
+      "description": "CrownOS desktop: settings reference, computer use, browser control, Playwright, context engine and desktop notifications.",
+      "version": "0.2.0",
       "category": "desktop",
-      "tags": ["crownos", "desktop", "computer-use"]
+      "tags": [
+        "crownos",
+        "desktop",
+        "computer-use",
+        "playwright"
+      ]
     }
   ]
 }

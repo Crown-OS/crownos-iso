@@ -4,6 +4,7 @@ base
 btop
 btrfs-progs
 cage
+chromium
 cryptsetup
 dosfstools
 e2fsprogs

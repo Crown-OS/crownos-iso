@@ -4,6 +4,11 @@
       "type": "stdio",
       "command": "crownos-computer-use",
       "args": ["mcp"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "crownos-setup",
+      "args": ["playwright-mcp"]
     }
   }
 }
