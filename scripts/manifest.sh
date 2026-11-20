@@ -3,7 +3,7 @@
 #
 #   manifest.sh names system|live|optional|all
 #   manifest.sh resolve REPO_DIR [--icon-theme CHECKOUT] [--siblings DIR]
-#   manifest.sh published CHANNEL REPO_DIR
+#   manifest.sh published CHANNEL REPO_DIR [PACKAGE...]
 #
 # names      the package names an install path takes: system is what every
 #            installed system has, live adds what only the live image runs,
@@ -13,7 +13,9 @@
 #            makepkg at the ISO version; then indexes it unsigned. DIR holds the
 #            sibling checkouts crownos-agent-skills reads (crownos-plugins,
 #            crownos-config); it defaults to the workspace above this repository
-# published  prints the manifest a channel publishes for the packages in REPO_DIR
+# published  prints the manifest a channel publishes for the packages in REPO_DIR;
+#            each PACKAGE is a system package in REPO_DIR that components.toml
+#            does not list, such as the crownos-setup of build.sh --installer
 
 set -euo pipefail
 shopt -s nullglob
@@ -133,16 +135,22 @@ published() {
     local channel=${1:?published needs CHANNEL} repo_dir=${2:?published needs REPO_DIR}
     [[ $channel == @(testing|stable) ]] || die "the channel is testing or stable, not $channel"
     validate
-    local name versions=() version build_id restart releases
-    while read -r name; do
+    local name versions=() version build_id restart releases all_names system_names
+    mapfile -t all_names < <(names all)
+    mapfile -t system_names < <(names system)
+    for name in "${@:3}"; do
+        [[ " ${all_names[*]} " == *" $name "* ]] || all_names+=("$name")
+        [[ " ${system_names[*]} " == *" $name "* ]] || system_names+=("$name")
+    done
+    for name in "${all_names[@]}"; do
         versions+=("$name" "$(package_version "$(package_file "$repo_dir" "$name")")")
-    done < <(names all)
+    done
     version=$(release_field "$repo_dir" VERSION_ID)
     build_id=$(release_field "$repo_dir" BUILD_ID)
     restart=$(release_restart "$version" "$channel")
     releases=$(release_chain "$version" | jq -R . | jq -s .)
     jq -n --arg version "$version" --arg build_id "$build_id" --arg channel "$channel" --arg restart "$restart" \
-        --argjson releases "$releases" --argjson system "$(names system | jq -R . | jq -s .)" '
+        --argjson releases "$releases" --argjson system "$(printf '%s\n' "${system_names[@]}" | jq -R . | jq -s .)" '
         {version: $version, build_id: $build_id, channel: $channel, restart: $restart, notes: "notes.md",
          releases: $releases, packages: $system,
          package: [$ARGS.positional as $pairs | range(0; $pairs | length; 2) | {name: $pairs[.], version: $pairs[. + 1]}]}' --args "${versions[@]}" |

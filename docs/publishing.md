@@ -158,8 +158,9 @@ source = "packaging/crownos-base"
   in the live image (`crownos-installer`), `optional` only in the repository
   (`crownos-source`).
 - `pkgbuild = "<path>"`: the repository's own PKGBUILD that `gen-pkgbuilds.sh`
-  uses instead of the generic Rust template (with every file beside it, such as
-  `snapd.install`).
+  uses instead of the generic Rust template (with every file and subdirectory
+  beside it, such as `snapd.install` or `systemd/`). The PKGBUILD can build its
+  own checkout through `_workspace="$startdir/.."` or `"$startdir/../.."`.
 - `allow_stale = true`: let a tag build ship this release although the
   repository's default branch has moved on.
 
@@ -176,7 +177,7 @@ comments are not kept.
 |---|---|
 | `manifest.sh names system\|live\|optional\|all` | lists and validates |
 | `manifest.sh resolve DIR [--icon-theme CHECKOUT] [--siblings DIR]` | downloads, verifies and builds every package into DIR, indexed unsigned; the siblings directory holds the `crownos-plugins` and `crownos-config` checkouts that `crownos-agent-skills` reads (CI checks them out under `siblings/`) |
-| `manifest.sh published CHANNEL DIR` | prints the published manifest for DIR |
+| `manifest.sh published CHANNEL DIR [PACKAGE...]` | prints the published manifest for DIR; each PACKAGE is an extra system package in DIR |
 | `pin.sh` | the only writer of `components.toml` |
 | `gate.sh` | fails if a pinned repository's default branch is ahead of its tag; on a tag, also checks `releases/<version>/` |
 | `notes.sh VERSION` | prints the release notes of VERSION |
@@ -184,13 +185,18 @@ comments are not kept.
 | `promote.sh TAG DIR` | signs DIR and uploads it as `repo-TAG` and `repo-stable` |
 | `gen-pkgbuilds.sh DIR OUT` | writes the crownos-source PKGBUILDs |
 | `export-key.sh KEY` | writes the public key into `packaging/crownos-keyring/` |
-| `build.sh [--repo DIR]` | builds the ISO from a resolved repository |
+| `build.sh [--repo DIR] [--installer CHECKOUT]` | builds the ISO from a resolved repository |
 
 `build.sh` reads the resolved repository with `SigLevel = Never`: its assets were
 checked against their pinned sha256 and its database was built locally, and a
 repository `publish.sh` already signed would otherwise fail against a build
 keyring without the CrownOS key. The ISO's offline mirror is unsigned either
 way; installed systems verify everything they fetch from `repo.crownos.org`.
+
+`just build-local` (`build.sh --installer CHECKOUT`) also builds `crownos-setup`
+from `packaging/crownos-setup/` of the installer checkout into the repository,
+puts it in the offline mirror and lists it in the `packages` of the staged
+manifest.
 
 Uploads skip assets whose sha256 digest already matches, then go new names
 first, then changed ones (packages before the database), then delete what the

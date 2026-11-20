@@ -108,17 +108,27 @@ package() {
 PKGBUILD
 }
 
+# Copies the directory SOURCE_DIR of REPO at TAG, with its subdirectories, into DIR.
+copy_repo_directory() {
+    local repo=$1 tag=$2 source_dir=$3 dir=$4 type name
+    mkdir -p -- "$dir"
+    while read -r type name; do
+        case $type in
+            file) gh api -H 'Accept: application/vnd.github.raw' "repos/$repo/contents/$source_dir/$name?ref=$tag" >"$dir/$name" ;;
+            dir) copy_repo_directory "$repo" "$tag" "$source_dir/$name" "$dir/$name" ;;
+        esac
+    done < <(gh api "repos/$repo/contents/$source_dir?ref=$tag" --jq '.[] | "\(.type) \(.name)"')
+}
+
 # Copies the PKGBUILD directory from the release tag and points a PKGBUILD that
-# builds its own checkout ($startdir/..) at a pinned clone instead.
+# builds its own checkout ($startdir/.. or $startdir/../..) at a pinned clone instead.
 write_from_repo() {
-    local entry=$1 dir=$2 repo tag pkgbuild siblings source_dir checkout version file
+    local entry=$1 dir=$2 repo tag pkgbuild siblings source_dir checkout version
     read -r repo tag pkgbuild < <(jq -r '[.repo, .tag, .pkgbuild] | join(" ")' <<<"$entry")
     siblings=$(jq -c '.siblings' <<<"$entry")
     source_dir=${pkgbuild%/*} checkout=${repo##*/}
     version=$(package_version "$repo_dir/$(jq -r .asset <<<"$entry")")
-    while read -r file; do
-        gh api -H 'Accept: application/vnd.github.raw' "repos/$repo/contents/$source_dir/$file?ref=$tag" >"$dir/$file"
-    done < <(gh api "repos/$repo/contents/$source_dir?ref=$tag" --jq '.[] | select(.type == "file") | .name')
+    copy_repo_directory "$repo" "$tag" "$source_dir" "$dir"
     [[ $pkgbuild == */PKGBUILD && -e $dir/PKGBUILD ]] || die "$repo $tag has no $pkgbuild"
 
     local line builds_checkout='' rewritten=()
@@ -126,7 +136,7 @@ write_from_repo() {
         case $line in
             pkgver=*) line=pkgver=${version%-*} ;;
             pkgrel=*) line=pkgrel=${version##*-} ;;
-            "_workspace=\"\$startdir/..\"")
+            "_workspace=\"\$startdir/..\"" | "_workspace=\"\$startdir/../..\"")
                 builds_checkout=1
                 line="_workspace=\"\$srcdir/$checkout\""
                 ;;

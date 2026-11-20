@@ -2,5 +2,7 @@
   "username": "crown",
   "password": "crownos",
   "hostname": "crownos-test",
-  "kernel_args": "console=ttyS0 systemd.show_status=1"
+  "kernel_args": "console=ttyS0 systemd.show_status=1",
+  "browser": "brave",
+  "developer_tools": { "codex": true }
 }

@@ -87,6 +87,21 @@ assert_installed_layout() {
     done
 }
 
+# The installer logs the files it writes as heredocs. The disk image is not
+# readable without root, so the setup state of the installed system is not checked.
+assert_setup_recorded() {
+    local log=$work/install.log expected
+    local -a recorded=(
+        'cat > [^ ]*/etc/crownos/setup\.ron'
+        '(^|[[:space:]])browser: Brave,'
+        '(^|[[:space:]])developer_tools: \(claude_code: false, codex: true, cursor: false\),'
+        'arch-chroot [^ ]+ systemctl enable .*crownos-setup\.service'
+    )
+    for expected in "${recorded[@]}"; do
+        grep -qaE "$expected" "$log" || die "the install log lacks \`$expected\`; see $log"
+    done
+}
+
 assert_booted_layout() {
     local log=$work/boot.log
     grep -q 'running hook \[crownos-recover\]' "$log" ||
@@ -101,6 +116,8 @@ assert_booted_layout() {
     fi
     grep -q 'root=PARTUUID=' <<<"$command_line" ||
         die "the default boot entry does not name the root by PARTUUID; see $log"
+    grep -qaE 'Started .*(crownos-setup\.service|CrownOS post-install setup)' "$log" ||
+        die "the installed system did not start crownos-setup.service; see $log"
 }
 
 boot_installed() {
@@ -124,6 +141,7 @@ extract_live_kernel
 printf 'installing %s\n' "${iso##*/}"
 install_unattended
 assert_installed_layout
+assert_setup_recorded
 printf 'booting the installed system\n'
 boot_installed
 printf 'pass: %s installs offline and boots\n' "${iso##*/}"

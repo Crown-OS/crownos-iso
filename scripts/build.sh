@@ -5,7 +5,8 @@
 #
 #   --repo        an already resolved repository, like CI's repo artifact
 #                 [default: resolve components.toml into target/repo]
-#   --installer   build this crownos-installer checkout instead of using its release
+#   --installer   build this crownos-installer checkout instead of using its release,
+#                 and its crownos-setup package into the repository as a system package
 #   --icon-theme  the crownos-icon-theme checkout to install [default: ../crownos-icon-theme]
 #   --squashfs-level  the zstd level of the live image, 1 to 22 [default: 19]. A lower
 #                 level builds much faster and makes the ISO a little larger
@@ -22,6 +23,8 @@ shopt -s nullglob
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 # shellcheck source=scripts/lib.sh
 source "$root/scripts/lib.sh"
+# shellcheck source=scripts/repo.sh
+source "$root/scripts/repo.sh"
 
 profile=$root/profile
 target=$root/target
@@ -61,6 +64,22 @@ resolve_repository() {
     [[ -e $repo_dir/crownos.db ]] || die "$repo_dir is not a resolved repository"
 }
 
+# A local build keeps the version of the PKGBUILD, so an older file of the same
+# name in the repository or the package cache would hide the new bytes.
+build_local_setup_package() {
+    local packaging=$installer/packaging/crownos-setup file
+    [[ -n $installer && -e $packaging/PKGBUILD ]] || return 0
+    for file in "$repo_dir"/crownos-setup-*.pkg.tar.zst* "$package_cache"/crownos-setup-*.pkg.tar.zst*; do
+        [[ $(package_name "${file%.sig}") == crownos-setup ]] && rm -f -- "$file"
+    done
+    (cd -- "$packaging" && BUILDDIR=$target/build PKGDEST=$repo_dir SRCDEST=$target/src \
+        makepkg --force --nodeps --cleanbuild --noconfirm)
+    rm -f -- "$repo_dir"/crownos.{db,files}*
+    repo-add --quiet "$repo_dir/crownos.db.tar.zst" "$repo_dir"/*.pkg.tar.zst
+    dereference_db_links "$repo_dir"
+    local_system_packages+=(crownos-setup)
+}
+
 # A repository publish.sh already signed carries .sig files, and pacman checks a
 # signature that is present even under Optional, against a build keyring that
 # has no CrownOS key. Every asset was verified against its pinned sha256 and
@@ -75,6 +94,7 @@ stage_install_list() {
     {
         grep -Ev '^[[:space:]]*(#|$)' "$profile/install.packages"
         "$root/scripts/manifest.sh" names system
+        ((${#local_system_packages[@]} == 0)) || printf '%s\n' "${local_system_packages[@]}"
     } | sort -u >"$target/install.packages"
 }
 
@@ -87,7 +107,7 @@ stage_live_list() {
 
 stage_manifest() {
     mkdir -p -- "${staged_manifest%/*}"
-    "$root/scripts/manifest.sh" published "$(default_channel)" "$repo_dir" >"$staged_manifest"
+    "$root/scripts/manifest.sh" published "$(default_channel)" "$repo_dir" "${local_system_packages[@]}" >"$staged_manifest"
 }
 
 stage_root_config() {
@@ -157,6 +177,8 @@ live_packages() {
 
 mkdir -p -- "$target"
 resolve_repository
+local_system_packages=()
+build_local_setup_package
 packages=()
 live_packages
 write_pacman_conf

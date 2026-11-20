@@ -9,7 +9,7 @@ default:
 build *args: trust-cachyos
     scripts/build.sh {{args}}
 
-# Build the ISO with a local installer checkout instead of its release
+# Build the ISO with a local installer checkout, and the crownos-setup package it holds, instead of the release
 build-local *args: trust-cachyos
     scripts/build.sh --installer {{installer}} {{args}}
 
