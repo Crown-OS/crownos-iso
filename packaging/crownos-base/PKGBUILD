@@ -19,7 +19,7 @@ arch=(any)
 url='https://github.com/Crown-OS/crownos-iso'
 license=(MIT)
 install=crownos-base.install
-options=(!debug)
+options=(!debug !strip)
 replaces=(crownos-desktop)
 conflicts=(crownos-desktop)
 mapfile -t depends < <(grep -Ev '^[[:space:]]*(#|$)' "$startdir/../desktop.depends")
