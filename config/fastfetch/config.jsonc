@@ -3,30 +3,85 @@
     "logo": {
         "type": "file",
         "source": "~/.config/fastfetch/crownos.txt",
-        "color": { "1": "yellow", "2": "magenta" },
-        "padding": { "top": 1, "right": 3 }
+        "color": {
+            "1": "magenta",
+            "2": "bright_magenta"
+        },
+        "padding": {
+            "top": 1,
+            "left": 2,
+            "right": 4
+        }
     },
     "display": {
         "separator": "  ",
-        "color": { "keys": "yellow", "title": "yellow" }
+        "key": {
+            "width": 14
+        },
+        "color": {
+            "keys": "magenta",
+            "title": "magenta",
+            "separator": "bright_black"
+        }
     },
     "modules": [
-        "title",
-        "separator",
-        "os",
-        "kernel",
-        "uptime",
-        "packages",
-        "shell",
-        "terminal",
-        "display",
-        "cpu",
-        "gpu",
-        "memory",
-        "swap",
-        "disk",
-        "battery",
+        {
+            "type": "title",
+            "color": {
+                "user": "magenta",
+                "at": "bright_black",
+                "host": "default"
+            }
+        },
         "break",
-        "colors"
+        {
+            "type": "os",
+            "key": "󰌽  os"
+        },
+        {
+            "type": "kernel",
+            "key": "  kernel"
+        },
+        {
+            "type": "uptime",
+            "key": "󰅐  uptime"
+        },
+        {
+            "type": "packages",
+            "key": "󰏖  packages"
+        },
+        {
+            "type": "shell",
+            "key": "  shell"
+        },
+        {
+            "type": "terminal",
+            "key": "  terminal"
+        },
+        {
+            "type": "cpu",
+            "key": "󰍛  cpu"
+        },
+        {
+            "type": "gpu",
+            "key": "󰢮  gpu"
+        },
+        {
+            "type": "memory",
+            "key": "  memory"
+        },
+        {
+            "type": "disk",
+            "key": "󰋊  disk"
+        },
+        "break",
+        {
+            "type": "custom",
+            "format": "{#bright_red}● {#bright_yellow}● {#bright_green}● {#bright_cyan}● {#bright_blue}● {#bright_magenta}● {#bright_white}●{#}"
+        },
+        {
+            "type": "custom",
+            "format": "{#red}● {#yellow}● {#green}● {#cyan}● {#blue}● {#magenta}● {#white}●{#}"
+        }
     ]
 }

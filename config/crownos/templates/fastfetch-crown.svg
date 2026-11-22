@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="544" height="426" viewBox="16 18 272 213">
+  <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="{{accent_alt}}"/>
+    <stop offset="1" stop-color="{{accent}}"/>
+  </linearGradient>
+  <path fill="url(#accent)" d="M16 18L125.98 115.041L152 18L178.02 115.041L288 18C288 18 282.702 36.957 271.848 61.6117L209.114 231L190.96 163.296C179.106 169.399 166.126 173 152 173C137.874 173 124.894 169.399 113.04 163.296L94.8863 231L32.152 61.6117C21.2977 36.957 16 18 16 18Z"/>
+</svg>

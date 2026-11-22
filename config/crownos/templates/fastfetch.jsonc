@@ -1,0 +1,87 @@
+// Rendered by crownos-theme-engine from ~/.config/crownos/templates/fastfetch.jsonc; edits are overwritten.
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo": {
+        "type": "kitty-direct",
+        "source": "~/.config/fastfetch/crown.png",
+        "width": 28,
+        "height": 11,
+        "padding": {
+            "top": 2,
+            "left": 2,
+            "right": 4
+        }
+    },
+    "display": {
+        "separator": "  ",
+        "key": {
+            "width": 14
+        },
+        "color": {
+            "keys": "{{accent_text}}",
+            "title": "{{accent_text}}",
+            "output": "{{foreground}}",
+            "separator": "{{muted}}"
+        }
+    },
+    "modules": [
+        {
+            "type": "title",
+            "color": {
+                "user": "{{accent_text}}",
+                "at": "{{muted}}",
+                "host": "{{foreground}}"
+            }
+        },
+        "break",
+        {
+            "type": "os",
+            "key": "󰌽  os"
+        },
+        {
+            "type": "kernel",
+            "key": "  kernel"
+        },
+        {
+            "type": "uptime",
+            "key": "󰅐  uptime"
+        },
+        {
+            "type": "packages",
+            "key": "󰏖  packages"
+        },
+        {
+            "type": "shell",
+            "key": "  shell"
+        },
+        {
+            "type": "terminal",
+            "key": "  terminal"
+        },
+        {
+            "type": "cpu",
+            "key": "󰍛  cpu"
+        },
+        {
+            "type": "gpu",
+            "key": "󰢮  gpu"
+        },
+        {
+            "type": "memory",
+            "key": "  memory"
+        },
+        {
+            "type": "disk",
+            "key": "󰋊  disk"
+        },
+        "break",
+        {
+            "type": "custom",
+            "format": "{#{{accent_alt}}}● {#{{accent}}}● {#{{success}}}● {#{{warning}}}● {#{{danger}}}● {#{{muted}}}● {#{{foreground}}}●{#}"
+        },
+        {
+            "type": "custom",
+            "format": "{#{{red}}}● {#{{yellow}}}● {#{{green}}}● {#{{cyan}}}● {#{{blue}}}● {#{{magenta}}}● {#{{white}}}●{#}"
+        }
+    ]
+}
