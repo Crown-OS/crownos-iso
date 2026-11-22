@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Packs the packages pinned in components.toml into a bootable ISO under out/.
 #
-#   build.sh [--repo DIR] [--installer CHECKOUT] [--icon-theme CHECKOUT]
+#   build.sh [--repo DIR] [--installer CHECKOUT] [--icon-theme CHECKOUT] [--squashfs-level LEVEL]
 #
 #   --repo        an already resolved repository, like CI's repo artifact
 #                 [default: resolve components.toml into target/repo]
 #   --installer   build this crownos-installer checkout instead of using its release
 #   --icon-theme  the crownos-icon-theme checkout to install [default: ../crownos-icon-theme]
+#   --squashfs-level  the zstd level of the live image, 1 to 22 [default: 19]. A lower
+#                 level builds much faster and makes the ISO a little larger
 #
 # The live image installs every system and live package of the manifest. The
 # offline mirror the installer pacstraps from holds profile/install.packages
@@ -34,15 +36,19 @@ staged_pacman_conf=$profile/airootfs/etc/pacman.conf
 keyring=$root/packaging/crownos-keyring/crownos.gpg
 package_cache=$target/pkg-cache
 
-repo_dir='' installer='' icon_theme=$root/../crownos-icon-theme
+repo_dir='' installer='' icon_theme=$root/../crownos-icon-theme squashfs_level=19
 while (($#)); do
     case $1 in
         --repo) repo_dir=$(realpath -- "${2:?--repo needs a directory}"); shift 2 ;;
         --installer) installer=$(realpath -- "${2:?--installer needs a checkout}"); shift 2 ;;
         --icon-theme) icon_theme=${2:?--icon-theme needs a checkout}; shift 2 ;;
+        --squashfs-level) squashfs_level=${2:?--squashfs-level needs a level}; shift 2 ;;
         *) die "unknown argument: $1" ;;
     esac
 done
+if [[ ! $squashfs_level =~ ^[0-9]+$ ]] || ((squashfs_level < 1 || squashfs_level > 22)); then
+    die "--squashfs-level must be 1 to 22, not $squashfs_level"
+fi
 [[ -x $icon_theme/install.sh ]] || die "no crownos-icon-theme checkout at $icon_theme"
 ((EUID != 0)) || die "run as a normal user; only the mkarchiso step needs root and asks sudo for it"
 [[ -e $keyring ]] || die "packaging/crownos-keyring/crownos.gpg is missing: run scripts/export-key.sh packages@crownos.org (docs/publishing.md)"
@@ -167,4 +173,4 @@ stage_mirror
 stage_installer
 
 sudo rm -rf -- "$target/iso-work"
-sudo mkarchiso -v -r -w "$target/iso-work" -o "$root/out" -C "$target/pacman.conf" -p "${packages[*]}" "$profile"
+sudo env CROWNOS_SQUASHFS_LEVEL="$squashfs_level" mkarchiso -v -r -w "$target/iso-work" -o "$root/out" -C "$target/pacman.conf" -p "${packages[*]}" "$profile"

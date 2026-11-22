@@ -6,7 +6,8 @@
 #   pull request  check: lint, validate and resolve the manifest; nothing is published
 #   push to main  resolve, sign and publish the testing channel (repo-testing), then build the
 #                 ISO and install it unattended in QEMU (skipped when the commit is
-#                 tagged: the tag's run builds that ISO)
+#                 tagged: the tag's run builds that ISO). Only tags pack the live
+#                 image at zstd level 19; other runs use level 6, which is faster
 #   v* tag        gate (no pinned component behind its default branch), resolve,
 #                 build and install-test the ISO, then in parallel: sign it and
 #                 publish it to SourceForge and the GitHub release (its body is
@@ -171,16 +172,26 @@ jobs:
       image: archlinux:latest
       # The host's preinstalled SDKs, mounted so they can be deleted: the build
       # needs the space for the image, its work tree and the offline mirror.
+      # The install test boots the ISO in QEMU through /dev/kvm.
       options: >-
         --privileged
+        --device /dev/kvm
         -v /usr/share/dotnet:/host/dotnet
         -v /usr/local/lib/android:/host/android
         -v /opt/hostedtoolcache:/host/toolcache
+    env:
+      # Tags ship the smallest ISO. Other runs use a fast level: about 2.9%
+      # larger, the same files.
+      SQUASHFS_LEVEL: ${{ github.ref_type == 'tag' && '19' || '6' }}
     steps:
-      - name: Free disk space
-        run: rm -rf /host/dotnet/* /host/android/* /host/toolcache/*
+      # The delete takes about 90 seconds, so it runs while the next steps
+      # install the tools and download the repository.
+      - name: Start freeing disk space
+        run: |
+          setsid rm -rf /host/dotnet/* /host/android/* /host/toolcache/* </dev/null >/dev/null 2>&1 &
+          echo "$!" > /tmp/free-disk-space.pid
       - name: Toolchain
-        run: pacman -Syu --noconfirm --needed archiso base-devel github-cli git python jq pacman-contrib libarchive sudo gtk-update-icon-cache
+        run: pacman -Syu --noconfirm --needed archiso base-devel github-cli git python jq pacman-contrib libarchive sudo gtk-update-icon-cache qemu-base edk2-ovmf dosfstools
       - name: Trust CachyOS packages
         run: |
           pacman-key --init
@@ -200,29 +211,21 @@ jobs:
           path: target/repo
       - name: Build user
         run: *builder
+      # Nothing reaps the orphaned rm, so a finished one stays a zombie. The
+      # last rm deletes what is left if the background one stopped early.
+      - name: Finish freeing disk space
+        run: |
+          pid=$(cat /tmp/free-disk-space.pid)
+          while state=$(awk '{ print $3 }' "/proc/$pid/stat" 2>/dev/null) && [[ $state != Z ]]; do sleep 1; done
+          rm -rf /host/dotnet/* /host/android/* /host/toolcache/*
       - name: Build ISO
-        run: as-builder scripts/build.sh --repo target/repo --icon-theme "$GITHUB_WORKSPACE/crownos-icon-theme"
+        run: as-builder scripts/build.sh --repo target/repo --icon-theme "$GITHUB_WORKSPACE/crownos-icon-theme" --squashfs-level "$SQUASHFS_LEVEL"
       - uses: actions/upload-artifact@v4
         with:
           name: iso
           path: out/*.iso
           compression-level: 0
           retention-days: 7
-
-  install-test:
-    needs: build
-    runs-on: ubuntu-latest
-    container:
-      image: archlinux:latest
-      options: --device /dev/kvm
-    steps:
-      - name: Toolchain
-        run: pacman -Syu --noconfirm --needed qemu-base edk2-ovmf dosfstools libarchive
-      - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v4
-        with:
-          name: iso
-          path: out
       - name: Install and boot
         run: scripts/install-test.sh out/*.iso
       - if: failure()
@@ -232,7 +235,7 @@ jobs:
           path: target/install-test/*.log
 
   publish:
-    needs: install-test
+    needs: build
     if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     env:
@@ -325,7 +328,7 @@ jobs:
   # Publishes the exact repository the tested ISO was built from; it runs beside
   # publish so a SourceForge failure never holds the packages back.
   promote:
-    needs: install-test
+    needs: build
     if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     container: archlinux:latest

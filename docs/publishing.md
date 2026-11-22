@@ -79,8 +79,8 @@ orders above vX.Y.Z and below the next tag.
 | Event | Jobs |
 |---|---|
 | pull request | `check`: `just check`, then `manifest.sh resolve`; nothing is signed or uploaded |
-| push to main | `resolve` (resolve, sign, publish `repo-testing`) → `build` → `install-test`; the ISO is skipped when the commit is tagged, since the tag's run builds it |
-| `v*` tag | `resolve` (`gate.sh` first, nothing published) → `build` → `install-test` → `publish` (ISO to SourceForge and the GitHub release, with `notes.sh` as its body) ∥ `promote` (the tested repository and its notes to `repo-<tag>` and `repo-stable`) → `pkgbuilds` |
+| push to main | `resolve` (resolve, sign, publish `repo-testing`) → `build` (build the ISO at zstd level 6, then install it in QEMU); the ISO is skipped when the commit is tagged, since the tag's run builds it |
+| `v*` tag | `resolve` (`gate.sh` first, nothing published) → `build` (build the ISO at zstd level 19, then install it in QEMU) → `publish` (ISO to SourceForge and the GitHub release, with `notes.sh` as its body) ∥ `promote` (the tested repository and its notes to `repo-<tag>` and `repo-stable`) → `pkgbuilds` |
 | `component-updated` dispatch | `bump.yml` opens a pull request pinning the release |
 
 Main pushes publish testing one at a time (`crownos-testing` concurrency group);
@@ -308,8 +308,8 @@ pointer here while `packaging/crownos-keyring/crownos.gpg` is missing.
 
 6. **Merge order.** Release the installer that pacstraps the staged manifest's
    `packages` first. The pull request that switches to `components.toml` then
-   pins that installer tag, so `install-test` is green on the first main run.
-   Until both are in, `install-test` is red by construction.
+   pins that installer tag, so the install test in `build` passes on the first
+   main run. Until both are in, the install test fails by construction.
 
 ## Installs from before crownos-updated
 

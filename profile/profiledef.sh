@@ -12,7 +12,7 @@ bootmodes=('uefi.systemd-boot')
 pacman_conf="pacman.conf"
 airootfs_image_type="squashfs"
 airootfs_image_tool_options=(
-  '-comp' 'zstd' '-Xcompression-level' '19' '-b' '1M'
+  '-comp' 'zstd' '-Xcompression-level' "${CROWNOS_SQUASHFS_LEVEL:-19}" '-b' '1M'
   '-action' 'uncompressed@subpathname(var/cache/crownos/mirror)'
 )
 file_permissions=(
