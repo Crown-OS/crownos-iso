@@ -1,5 +1,7 @@
 post_install() {
-  pacman-key -l >/dev/null 2>&1 && pacman-key --populate crownos
+  if pacman-key -l >/dev/null 2>&1; then
+    pacman-key --populate crownos
+  fi
 }
 
 post_upgrade() {
