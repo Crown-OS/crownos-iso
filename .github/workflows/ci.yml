@@ -1,0 +1,23 @@
+# Shellchecks every *.sh on every push and pull request. Logic lives in
+# Crown-OS/.github. release.yml's `just check` (pull requests only) stays the
+# fuller lint: it follows sources with -x and covers PKGBUILDs and the
+# extensionless scripts too.
+#
+# SC1091 is excluded because shell.yml runs without -x, so the
+# `# shellcheck source=scripts/lib.sh` directives cannot be followed.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shell:
+    uses: Crown-OS/.github/.github/workflows/shell.yml@main
+    with:
+      exclude: SC2034,SC1091
