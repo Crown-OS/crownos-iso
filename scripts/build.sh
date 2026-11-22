@@ -80,6 +80,18 @@ build_local_setup_package() {
     local_system_packages+=(crownos-setup)
 }
 
+# The packages built from packaging/ keep their version on each resolve, but
+# makepkg writes new bytes, so pacman rejects the older cached file of that name.
+drop_stale_cached_packages() {
+    local package cached
+    for package in "$repo_dir"/*.pkg.tar.zst; do
+        cached=$package_cache/${package##*/}
+        if [[ -e $cached ]] && ! cmp -s -- "$package" "$cached"; then
+            rm -f -- "$cached" "$cached.sig"
+        fi
+    done
+}
+
 # A repository publish.sh already signed carries .sig files, and pacman checks a
 # signature that is present even under Optional, against a build keyring that
 # has no CrownOS key. Every asset was verified against its pinned sha256 and
@@ -179,6 +191,7 @@ mkdir -p -- "$target"
 resolve_repository
 local_system_packages=()
 build_local_setup_package
+drop_stale_cached_packages
 packages=()
 live_packages
 write_pacman_conf
