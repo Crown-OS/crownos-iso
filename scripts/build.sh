@@ -209,3 +209,4 @@ stage_installer
 
 sudo rm -rf -- "$target/iso-work"
 sudo env CROWNOS_SQUASHFS_LEVEL="$squashfs_level" mkarchiso -v -r -w "$target/iso-work" -o "$root/out" -C "$target/pacman.conf" -p "${packages[*]}" "$profile"
+sudo chown -R "$(id -u):$(id -g)" -- "$root/out"
