@@ -68,9 +68,9 @@ sha256 = "2744d7a4704295ba17121e3f2241c0190a78390e9231cadd8f27017e0b72a14f"
 [[package]]
 name = "crownlink-linux"
 repo = "Crown-OS/crownlink-linux"
-tag = "v0.2.0"
-asset = "crownlink-linux-0.2.0-1-x86_64.pkg.tar.zst"
-sha256 = "4b77bd06d5ca95e3120537f31ca2e01ac5b3784ff1c6b7defa9714417d2bbd69"
+tag = "v0.3.0"
+asset = "crownlink-linux-0.3.0-1-x86_64.pkg.tar.zst"
+sha256 = "c1a7c12fe1d2a550ad21ddd72094484e494de90628a93171ee42e79a46676f26"
 
 [[package]]
 name = "crownlauncher"
@@ -201,3 +201,10 @@ repo = "Crown-OS/crownos-installer"
 tag = "v0.4.0"
 asset = "crownos-setup-0.4.0-1-x86_64.pkg.tar.zst"
 sha256 = "bf3e9b70ee7dbbe532ece1400facc08a9457aaa5095cb0d042301ec74b233ae7"
+
+[[package]]
+name = "crownos-remote-desktop"
+repo = "Crown-OS/crownos-remote-desktop"
+tag = "v0.1.0"
+asset = "crownos-remote-desktop-0.1.0-1-x86_64.pkg.tar.zst"
+sha256 = "3ea82fca1288dad07fd12c5277503b00c95c11aaf6250346ace86e4760e8717a"
