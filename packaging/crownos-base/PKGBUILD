@@ -42,6 +42,7 @@ package() {
     _package_updates
     _package_brightness
     _package_remote_desktop
+    _package_ptrace_scope
     install -Dm644 -t "$pkgdir/usr/share/polkit-1/actions" "$startdir"/*.policy "$startdir/windows-apps/org.crownos.windows-apps.policy" "$startdir/memory/org.crownos.memory.policy"
     install -Dm644 -t "$pkgdir/usr/share/dbus-1/system.d" "$startdir/process-monitor/org.crownos.ProcessMonitor1.conf"
     install -Dm644 -t "$pkgdir/usr/share/dbus-1/system-services" "$startdir/process-monitor/org.crownos.ProcessMonitor1.service"
@@ -79,6 +80,13 @@ _package_brightness() {
 # `systemctl --user enable --now crownos-remoted`.
 _package_remote_desktop() {
     install -Dm644 -t "$pkgdir/usr/lib/systemd/user" "$startdir/remote-desktop/crownos-remoted.service"
+}
+
+# The linux-cachyos kernel has Yama with ptrace_scope 1 as its default, but no
+# file sets it. The drop-in keeps it when a kernel or package changes the
+# default. cachyos-settings is not installed; its 99- file would sort after this.
+_package_ptrace_scope() {
+    install -Dm644 -t "$pkgdir/usr/lib/sysctl.d" "$startdir/ptrace/90-crownos-ptrace-scope.conf"
 }
 
 # crownos-automount ships in crownos-diskmanager; it runs for every user
