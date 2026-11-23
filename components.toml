@@ -4,9 +4,9 @@
 [[package]]
 name = "crownos-installer"
 repo = "Crown-OS/crownos-installer"
-tag = "v0.3.2"
-asset = "crownos-installer-0.3.2-1-x86_64.pkg.tar.zst"
-sha256 = "8e2c3a2c8b7d2e4ced1cd8df97ec5eae66cabeafcdbe4eb25a861aa4ad415ba4"
+tag = "v0.4.0"
+asset = "crownos-installer-0.4.0-1-x86_64.pkg.tar.zst"
+sha256 = "2c3724cb79a425db6b706fa2b01977c19d9b5b3dcb37b5ba998bf1ed4b49a7c4"
 install = "live"
 
 [[package]]
@@ -194,3 +194,10 @@ repo = "Crown-OS/crownos-update"
 tag = "v0.1.0"
 asset = "crownos-update-0.1.0-1-x86_64.pkg.tar.zst"
 sha256 = "13a977b2567da6376ae1274b22a4fc19933a1142588c1d72f825eee4b3fcc717"
+
+[[package]]
+name = "crownos-setup"
+repo = "Crown-OS/crownos-installer"
+tag = "v0.4.0"
+asset = "crownos-setup-0.4.0-1-x86_64.pkg.tar.zst"
+sha256 = "bf3e9b70ee7dbbe532ece1400facc08a9457aaa5095cb0d042301ec74b233ae7"
