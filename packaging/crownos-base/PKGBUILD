@@ -84,7 +84,7 @@ _package_remote_desktop() {
 
 # The linux-cachyos kernel has Yama with ptrace_scope 1 as its default, but no
 # file sets it. The drop-in keeps it when a kernel or package changes the
-# default. cachyos-settings is not installed; its 99- file would sort after this.
+# default.
 _package_ptrace_scope() {
     install -Dm644 -t "$pkgdir/usr/lib/sysctl.d" "$startdir/ptrace/90-crownos-ptrace-scope.conf"
 }
