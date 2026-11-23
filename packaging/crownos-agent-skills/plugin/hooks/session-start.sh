@@ -10,13 +10,18 @@ has() { command -v "$1" >/dev/null 2>&1; }
 desktop='Desktop apps have no MCP server on this release'
 if has crownos-computer-use; then
     desktop='Desktop apps go through the crownos-computer-use MCP server (skills:
-crownos-computer-use, crownos-browser, crownos-context)'
+crownos-computer-use, crownos-browser)'
 fi
 web=''
 if has crownos-setup; then
     web='; web pages through the playwright MCP server (skill: crownos-playwright)'
 elif has crownos-computer-use; then
     web='; web pages through the browser tools of the same server (skill: crownos-browser)'
+fi
+context=''
+if has crown-context; then
+    context="
+What the user did recently comes from the crown-context command (skill: crownos-context)."
 fi
 secrets=''
 if has crownos-secrets-mcp; then
@@ -27,5 +32,5 @@ fi
 cat <<CONTEXT
 This machine runs ${release:-CrownOS}. Desktop settings are RON files under ~/.config/crownos/,
 documented per key in /usr/share/doc/crownos/config/index.md (skill: crownos-config).
-${desktop}${web}; themes and plugins through crownplugin (skill: crownos-plugins).${secrets}
+${desktop}${web}; themes and plugins through crownplugin (skill: crownos-plugins).${context}${secrets}
 CONTEXT

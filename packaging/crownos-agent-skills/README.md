@@ -11,7 +11,7 @@ What a coding agent needs to know about the CrownOS desktop, installed where the
 | `crownos-computer-use` | The `crownos-computer-use` MCP server: windows, snapshots, refs, actions, the agent workspace |
 | `crownos-browser` | The browser chosen at install time, driven by the daemon over the DevTools pipe (Brave, Google Chrome or Chromium); when the user's own browser is needed |
 | `crownos-playwright` | The `playwright` MCP server and `playwright-cli` on the chosen browser; which browser tool to pick |
-| `crownos-context` | The visual context engine's `context.*` and `memory.*` tools, scopes and first-use consent |
+| `crownos-context` | The visual context engine through the `crown-context` command: scopes, first-use consent, the planned MCP tools |
 | `crownos-secrets` | The `crownos-secrets` MCP server: secrets by name, `type_secret` and `fill_login` through computer use, no value in the chat |
 | `crownos-plugins` | Themes and plugins with `crownplugin` (from the crownos-plugins repository) |
 

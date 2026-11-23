@@ -68,10 +68,10 @@ starts with one of these words:
 
 | Start | Meaning | What to do |
 |---|---|---|
-| `no stored secret has this name` | The name is wrong or missing. | Look at `secrets_list`. If it is missing, call `secrets_request`. |
+| `no stored secret has this name`, `no stored secret or template has this name` | The name is wrong or missing. | Look at `secrets_list`. If it is missing, call `secrets_request`. |
 | `the vault is locked` | The vault is locked. | Ask the user to run `crownos-secrets unlock`. |
-| `denied:` | The rules of the secret do not allow you, this app or this page. | Stop. Tell the user. |
-| `refused:` | The target is wrong: not a password field, another app, another origin, or a locked session. | Take a new snapshot and use the correct ref. If it stays refused, stop and tell the user. |
+| `denied:` | The rules of the secret do not allow you, this app or this page, or the page origin does not match them. | Stop. Tell the user. |
+| `refused:` | The target is wrong: not a password field, another app, a locked session, or arguments that the template does not allow. | Take a new snapshot and use the correct ref. If it stays refused, stop and tell the user. |
 | `stopped:` | The user said no, did not answer, or the focus moved. | Do not try again at once. Ask the user. |
 | `slow down:` | Too many uses. | Wait, then try one time. |
 | `not available` | `crownos-secretsd` does not run, or this release cannot do this use. | Tell the user. |

@@ -64,11 +64,12 @@ package() {
 
 # An MCP server whose command is not installed fails at each session start, so
 # the plugin lists only the servers whose package every installed system gets.
+# A placeholder entry (tag TODO) is not shipped.
 _mcp_servers_of_shipped_packages() {
     local manifest
     manifest=$(python3 -I "$_iso/scripts/toml.py" json "$_iso/components.toml") || return
     jq --slurpfile servers "$startdir/plugin/mcp-servers.json" '
-        [.package[] | select((.install // "system") == "system") | .name] as $shipped
+        [.package[] | select((.install // "system") == "system" and .tag != "TODO") | .name] as $shipped
         | {mcpServers: ($servers[0]
             | with_entries(select(.value.package | IN($shipped[])))
             | map_values({type: "stdio", command, args}))}' <<<"$manifest"
