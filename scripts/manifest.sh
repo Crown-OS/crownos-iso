@@ -37,6 +37,8 @@ validate() {
             elif has("repo") and ([.tag, .asset, .sha256] | map(type) != ["string", "string", "string"])
               then "\(.name): a release entry needs tag, asset and sha256"
             elif has("repo") and (.sha256 | test("^[0-9a-f]{64}$") | not) then "\(.name): sha256 is not 64 hex digits"
+            elif has("repo") and (.tag == "TODO" or (.sha256 | test("^0+$")))
+              then "\(.name): a placeholder entry (tag TODO or a zero sha256); pin a release with scripts/pin.sh"
             elif has("repo") and (.asset | sub("-[^-]+-[^-]+-[^-]+$"; "")) != .name
               then "\(.name): asset \(.asset) holds another package"
             elif (.install // "system" | IN("system", "live", "optional") | not)
