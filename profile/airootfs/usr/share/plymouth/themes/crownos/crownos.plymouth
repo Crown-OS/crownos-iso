@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=CrownOS
+Description=The CrownOS logo with a progress bar on black
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/crownos
+ScriptFile=/usr/share/plymouth/themes/crownos/crownos.script

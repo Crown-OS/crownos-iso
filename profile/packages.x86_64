@@ -25,6 +25,7 @@ networkmanager
 nvim
 ntfs-3g
 parted
+plymouth
 polkit
 power-profiles-daemon
 starship

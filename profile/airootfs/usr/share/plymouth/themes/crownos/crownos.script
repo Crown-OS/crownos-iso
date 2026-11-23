@@ -1,0 +1,62 @@
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+logo_image = Image("logo.png");
+track_image = Image("progress-track.png");
+fill_image = Image("progress-fill.png");
+
+logo = Sprite();
+track = Sprite();
+fill = Sprite();
+
+seconds_until_half_full = 8;
+target_fraction = 0;
+shown_fraction = 0;
+frames_shown = 0;
+bar_width = 0;
+bar_height = 0;
+
+fun lay_out_screen() {
+    screen_center_x = Window.GetX() + Window.GetWidth() / 2;
+    screen_center_y = Window.GetY() + Window.GetHeight() / 2;
+
+    logo_height = Math.Int(Window.GetHeight() * 0.09);
+    logo_width = Math.Int(logo_image.GetWidth() * logo_height / logo_image.GetHeight());
+    logo.SetImage(logo_image.Scale(logo_width, logo_height));
+    logo.SetPosition(Math.Int(screen_center_x - logo_width / 2), Math.Int(screen_center_y - logo_height), 1);
+
+    bar_width = Math.Int(logo_width * 1.1);
+    bar_height = Math.Max(4, Math.Int(Window.GetHeight() * 0.005));
+    bar_x = Math.Int(screen_center_x - bar_width / 2);
+    bar_y = Math.Int(screen_center_y + logo_height * 0.75);
+    track.SetImage(track_image.Scale(bar_width, bar_height));
+    track.SetPosition(bar_x, bar_y, 1);
+    fill.SetPosition(bar_x, bar_y, 2);
+}
+
+fun show_progress() {
+    fill_width = Math.Max(bar_height, Math.Int(bar_width * shown_fraction));
+    fill.SetImage(fill_image.Scale(fill_width, bar_height));
+}
+
+fun on_boot_progress(seconds_since_start, estimated_progress) {
+    target_fraction = seconds_since_start / (seconds_since_start + seconds_until_half_full);
+}
+
+fun on_refresh() {
+    frames_shown++;
+    fade_in = Math.Min(1, frames_shown / 25);
+    logo.SetOpacity(fade_in);
+    track.SetOpacity(fade_in);
+    fill.SetOpacity(fade_in);
+
+    shown_fraction += (target_fraction - shown_fraction) * 0.08;
+    show_progress();
+}
+
+lay_out_screen();
+show_progress();
+
+Plymouth.SetDisplayHotplugFunction(lay_out_screen);
+Plymouth.SetBootProgressFunction(on_boot_progress);
+Plymouth.SetRefreshFunction(on_refresh);
