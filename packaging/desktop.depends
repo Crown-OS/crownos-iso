@@ -1,6 +1,8 @@
 # System services and drivers the desktop needs beside its own components.
 bluez
 dbus
+at-spi2-core
+bubblewrap
 fish
 flatpak
 inter-font

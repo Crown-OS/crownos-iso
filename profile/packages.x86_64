@@ -1,8 +1,10 @@
 amd-ucode
 arch-install-scripts
+at-spi2-core
 base
 btop
 btrfs-progs
+bubblewrap
 cage
 chromium
 cryptsetup
