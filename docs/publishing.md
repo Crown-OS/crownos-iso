@@ -80,7 +80,7 @@ orders above vX.Y.Z and below the next tag.
 |---|---|
 | pull request | `check`: `just check`, then `manifest.sh resolve`; nothing is signed or uploaded |
 | push to main | `resolve` (resolve, sign, publish `repo-testing`) → `build` (build the ISO at zstd level 6, then install it in QEMU); the ISO is skipped when the commit is tagged, since the tag's run builds it |
-| `v*` tag | `resolve` (`gate.sh` first, nothing published) → `build` (build the ISO at zstd level 19, then install it in QEMU) → `publish` (ISO to SourceForge and the GitHub release, with `notes.sh` as its body) ∥ `promote` (the tested repository and its notes to `repo-<tag>` and `repo-stable`) → `pkgbuilds` |
+| `v*` tag | `resolve` (`gate.sh` first, nothing published) → `build` (build the ISO at zstd level 19, then install it in QEMU) → `publish` (ISO to Backblaze B2, then the GitHub release with `notes.sh` as its body, then the SourceForge mirror) ∥ `promote` (the tested repository and its notes to `repo-<tag>` and `repo-stable`) → `pkgbuilds` |
 | `component-updated` dispatch | `bump.yml` opens a pull request pinning the release |
 
 Main pushes publish testing one at a time (`crownos-testing` concurrency group);
@@ -186,6 +186,7 @@ comments are not kept.
 | `gen-pkgbuilds.sh DIR OUT` | writes the crownos-source PKGBUILDs |
 | `export-key.sh KEY` | writes the public key into `packaging/crownos-keyring/` |
 | `build.sh [--repo DIR] [--installer CHECKOUT]` | builds the ISO from a resolved repository |
+| `b2-publish.sh FILE...` | uploads the files to the B2 bucket behind `download.crownos.org`, then deletes all other file versions in the bucket |
 
 `build.sh` reads the resolved repository with `SigLevel = Never`: its assets were
 checked against their pinned sha256 and its database was built locally, and a
@@ -312,7 +313,30 @@ pointer here while `packaging/crownos-keyring/crownos.gpg` is missing.
    (`CROWNOS_ISO_DISPATCH_TOKEN`) already targets crownos-iso; `bump.yml` now
    receives it.
 
-6. **Merge order.** Release the installer that pacstraps the staged manifest's
+6. **ISO downloads.** `https://download.crownos.org/<file>` serves the newest
+   ISO, its `.sig`, its `.sha256` and `SHA256SUMS` from the private Backblaze B2
+   bucket `crownos-releases`. The bucket is private because B2 makes a bucket
+   public only after a card payment. The Worker in `download-worker/` reads the
+   bucket with a read-only key and forwards `Range`, so interrupted downloads
+   continue. B2 egress to Cloudflare is free, and B2 stores 10 GB free, so
+   `b2-publish.sh` stops before the upload when the old and the new ISO do not
+   fit together.
+
+   - In B2, set the lifecycle of `crownos-releases` to *Keep only the last
+     version of the file*.
+   - Make an application key with read and write access to `crownos-releases`
+     only. Put its key ID and key into the secrets `CROWNOS_B2_KEY_ID` and
+     `CROWNOS_B2_APPLICATION_KEY`.
+   - Make a read-only key for `crownos-releases` and deploy the Worker:
+
+     ```sh
+     cd download-worker
+     wrangler deploy
+     wrangler secret put B2_KEY_ID
+     wrangler secret put B2_APPLICATION_KEY
+     ```
+
+7. **Merge order.** Release the installer that pacstraps the staged manifest's
    `packages` first. The pull request that switches to `components.toml` then
    pins that installer tag, so the install test in `build` passes on the first
    main run. Until both are in, the install test fails by construction.

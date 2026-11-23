@@ -10,8 +10,9 @@
 #                 image at zstd level 19; other runs use level 6, which is faster
 #   v* tag        gate (no pinned component behind its default branch), resolve,
 #                 build and install-test the ISO, then in parallel: sign it and
-#                 publish it to SourceForge and the GitHub release (its body is
-#                 scripts/notes.sh), and promote the exact repository it was built
+#                 publish it to Backblaze B2 (https://download.crownos.org, which
+#                 keeps only the newest ISO), the SourceForge mirror and the GitHub
+#                 release (its body is scripts/notes.sh), and promote the exact repository it was built
 #                 from, with its notes, to repo-<tag> and repo-stable;
 #                 then push the generated PKGBUILDs to Crown-OS/crownos-pkgbuilds
 #
@@ -21,6 +22,8 @@
 #   CROWNOS_SOURCES_TOKEN          read access to component releases, if any repository is private
 #   CROWNOS_ISO_SIGNING_KEY        armored private key that signs the ISO
 #   CROWNOS_ISO_SIGNING_PASSPHRASE its passphrase, if it has one
+#   CROWNOS_B2_KEY_ID              Backblaze B2 application key restricted to the crownos-releases bucket
+#   CROWNOS_B2_APPLICATION_KEY     its secret
 #   CROWNOS_SOURCEFORGE_SSH_KEY    private SSH key added to the SourceForge account that uploads
 #   CROWNOS_SOURCEFORGE_API_KEY    that account's Release API key
 # Variables:
@@ -266,6 +269,30 @@ jobs:
           export CROWNOS_SIGNING_KEY
           echo "SIGNING_FINGERPRINT=$CROWNOS_SIGNING_KEY" >> "$GITHUB_ENV"
           for iso in out/*.iso; do scripts/sign.sh "$iso"; done
+      - name: Upload to Backblaze B2
+        env:
+          B2_KEY_ID: ${{ secrets.CROWNOS_B2_KEY_ID }}
+          B2_APPLICATION_KEY: ${{ secrets.CROWNOS_B2_APPLICATION_KEY }}
+        working-directory: out
+        run: |
+          iso=$(ls -- *.iso)
+          sha256sum -- "$iso" > SHA256SUMS
+          ../scripts/b2-publish.sh "$iso" "$iso.sig" "$iso.sha256" SHA256SUMS
+          echo "ISO=$iso" >> "$GITHUB_ENV"
+          echo "ISO_URL=https://download.crownos.org/$iso" >> "$GITHUB_ENV"
+          echo "MIRROR_URL=https://downloads.sourceforge.net/project/$SOURCEFORGE_PROJECT/$GITHUB_REF_NAME/$iso" >> "$GITHUB_ENV"
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: out
+        run: |
+          # shellcheck disable=SC2016
+          printf 'Download: [%s](%s) (mirror: [SourceForge](%s))\n\nSigned with the CrownOS ISO key `%s`. To verify:\n\n```sh\ngpg --recv-keys %s\ngpg --verify %s.sig %s\n```\n\n' \
+            "$ISO" "$ISO_URL" "$MIRROR_URL" "$SIGNING_FINGERPRINT" "$SIGNING_FINGERPRINT" "$ISO" "$ISO" > "$RUNNER_TEMP/body.md"
+          # GitHub refuses release bodies over 125,000 characters.
+          head -c 120000 -- "$RUNNER_TEMP/notes.md" >> "$RUNNER_TEMP/body.md"
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --notes-file "$RUNNER_TEMP/body.md" -- *.sig *.sha256 SHA256SUMS
       - name: Upload to SourceForge
         env:
           SSH_KEY: ${{ secrets.CROWNOS_SOURCEFORGE_SSH_KEY }}
@@ -284,27 +311,10 @@ jobs:
           printf '%s\n' "$SSH_KEY" > "$ssh_dir/key"
           chmod 600 "$ssh_dir/key"
           printf '%s\n' "$FRS_HOST_KEY" > "$ssh_dir/known_hosts"
-          iso=$(ls -- *.iso)
-          sha256sum -- *.iso > SHA256SUMS
           rsync --archive --partial \
             -e "ssh -i $ssh_dir/key -o IdentitiesOnly=yes -o UserKnownHostsFile=$ssh_dir/known_hosts" \
-            -- "$iso" "$iso.sig" "$iso.sha256" \
+            -- "$ISO" "$ISO.sig" "$ISO.sha256" \
             "$SOURCEFORGE_USER@frs.sourceforge.net:/home/frs/project/$SOURCEFORGE_PROJECT/$GITHUB_REF_NAME/"
-          echo "ISO=$iso" >> "$GITHUB_ENV"
-          echo "ISO_URL=https://downloads.sourceforge.net/project/$SOURCEFORGE_PROJECT/$GITHUB_REF_NAME/$iso" >> "$GITHUB_ENV"
-      - name: Publish release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        working-directory: out
-        run: |
-          iso=$(ls -- *.iso)
-          # shellcheck disable=SC2016
-          printf 'Download: [%s](%s)\n\nSigned with the CrownOS ISO key `%s`. To verify:\n\n```sh\ngpg --recv-keys %s\ngpg --verify %s.sig %s\n```\n\n' \
-            "$iso" "$ISO_URL" "$SIGNING_FINGERPRINT" "$SIGNING_FINGERPRINT" "$iso" "$iso" > "$RUNNER_TEMP/body.md"
-          # GitHub refuses release bodies over 125,000 characters.
-          head -c 120000 -- "$RUNNER_TEMP/notes.md" >> "$RUNNER_TEMP/body.md"
-          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag \
-            --notes-file "$RUNNER_TEMP/body.md" -- *.sig *.sha256 SHA256SUMS
       # SourceForge indexes an upload a few minutes after it lands and turns the
       # Release API away until then, so this retries until the project's best
       # release is the new ISO.
