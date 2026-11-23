@@ -11,7 +11,8 @@ What a coding agent needs to know about the CrownOS desktop, installed where the
 | `crownos-computer-use` | The `crownos-computer-use` MCP server: windows, snapshots, refs, actions, the agent workspace |
 | `crownos-browser` | The browser chosen at install time, driven by the daemon over the DevTools pipe (Brave, Google Chrome or Chromium); when the user's own browser is needed |
 | `crownos-playwright` | The `playwright` MCP server and `playwright-cli` on the chosen browser; which browser tool to pick |
-| `crownos-context` | The visual context engine's `context.*` and `memory.*` tools |
+| `crownos-context` | The visual context engine's `context.*` and `memory.*` tools, scopes and first-use consent |
+| `crownos-secrets` | The `crownos-secrets` MCP server: secrets by name, `type_secret` and `fill_login` through computer use, no value in the chat |
 | `crownos-plugins` | Themes and plugins with `crownplugin` (from the crownos-plugins repository) |
 
 ## Paths
@@ -22,7 +23,7 @@ What a coding agent needs to know about the CrownOS desktop, installed where the
 | `/etc/claude-code/.claude/skills/<name>` | Claude Code's system-wide skill folder, links to the above |
 | `/etc/codex/skills/<name>` | Codex's admin skill folder, links |
 | `/usr/share/crownos/claude-marketplace/` | A `directory` marketplace named `crownos` with one plugin, `crownos` |
-| `.../plugins/crownos/` | The plugin: `.claude-plugin/plugin.json`, `skills/` (links), `hooks/hooks.json` + scripts, `.mcp.json` |
+| `.../plugins/crownos/` | The plugin: `.claude-plugin/plugin.json`, `skills/` (links), `hooks/hooks.json` + scripts, `.mcp.json` (made at build time) |
 | `/etc/claude-code/managed-settings.json` | `{}`; kept on upgrade (`backup`) so an admin may extend it |
 | `/etc/claude-code/managed-settings.d/50-crownos.json` | Registers the marketplace and force-enables `crownos@crownos` |
 | `/usr/share/doc/crownos/config/` | The settings reference, `cargo xtask config-docs` output from crownos-config |
@@ -38,17 +39,21 @@ option undoes the links, and `--list` shows the folders.
 
 - Managed settings cannot be turned off by the user; a plugin force-enabled there stays on. That
   is the point for a distribution, and also why the plugin only adds skills, notification hooks
-  and two MCP servers, never permissions or model settings.
+  and MCP servers, never permissions or model settings.
 - `managed-mcp.json` is deliberately not used: it takes exclusive control of MCP servers and would
   block every server a user adds. The MCP servers come through the plugin's `.mcp.json`.
 - Drop-ins under `managed-settings.d/` merge alphabetically after `managed-settings.json`; the
   `50-` prefix leaves room on both sides.
-- The plugin's MCP servers are `crownos-computer-use` and `playwright`, both over stdio. The
-  `playwright` entry is added when the `crownos-setup` package is in the ISO.
-  `crownos-computer-use mcp` ships with the crownos-computer-use component.
-  `crownos-setup playwright-mcp` ships with the `crownos-setup` package and starts `@playwright/mcp`
-  on the browser chosen at install time. Until a binary is installed, its server fails to start
-  and Claude Code reports it in `/mcp`, which is harmless.
+- The plugin's MCP server candidates are in `plugin/mcp-servers.json`, all over stdio. The
+  PKGBUILD writes `.mcp.json` with only the servers whose package `components.toml` ships, so no
+  entry points at a missing binary:
+  - `crownos-computer-use` runs `crownos-computer-use mcp`, from the crownos-computer-use component.
+  - `playwright` runs `crownos-setup playwright-mcp`, from the `crownos-setup` package. It starts
+    `@playwright/mcp` on the browser chosen at install time.
+  - `crownos-secrets` runs `crownos-secrets-mcp`, from the crownos-secrets-manager component. No
+    tool of it returns a secret value.
+  `crownos-setup user` adds the same servers to the other coding agents, each only when its
+  command is on `PATH`.
 
 ## Hooks
 
@@ -59,7 +64,8 @@ package's only dependencies.
 
 ## Build
 
-The PKGBUILD reads two sibling checkouts through `CROWNOS_SIBLINGS` (set by
-`scripts/manifest.sh`, default `../..` from `packaging/`): `crownos-plugins/skill/SKILL.md` and
+The PKGBUILD reads `components.toml` (with `jq` and `python3`) for the MCP servers, and two
+sibling checkouts through `CROWNOS_SIBLINGS` (set by `scripts/manifest.sh`, default `../..` from
+`packaging/`): `crownos-plugins/skill/SKILL.md` and
 `crownos-config/docs/config/*.md`. Regenerate the latter with `cargo xtask config-docs` in
 crownos-config; its `--check` mode fails CI there when it is stale.

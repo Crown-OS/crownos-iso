@@ -6,13 +6,26 @@ set -eu
 [ -r /usr/lib/crownos/os-release ] || [ -d /usr/share/crownos ] || exit 0
 
 release=$(sed -n 's/^PRETTY_NAME=//p' /usr/lib/crownos/os-release 2>/dev/null | tr -d '"')
-web='web pages through the browser tools of the same server (skill: crownos-browser)'
-if command -v crownos-setup >/dev/null 2>&1; then
-    web='web pages through the playwright MCP server (skill: crownos-playwright)'
+has() { command -v "$1" >/dev/null 2>&1; }
+desktop='Desktop apps have no MCP server on this release'
+if has crownos-computer-use; then
+    desktop='Desktop apps go through the crownos-computer-use MCP server (skills:
+crownos-computer-use, crownos-browser, crownos-context)'
+fi
+web=''
+if has crownos-setup; then
+    web='; web pages through the playwright MCP server (skill: crownos-playwright)'
+elif has crownos-computer-use; then
+    web='; web pages through the browser tools of the same server (skill: crownos-browser)'
+fi
+secrets=''
+if has crownos-secrets-mcp; then
+    secrets="
+Passwords and API keys are used by name through the crownos-secrets MCP server (skill:
+crownos-secrets); never ask the user to paste one into the chat."
 fi
 cat <<CONTEXT
 This machine runs ${release:-CrownOS}. Desktop settings are RON files under ~/.config/crownos/,
-documented per key in /usr/share/doc/crownos/config/index.md (skill: crownos-config). Desktop apps
-go through the crownos-computer-use MCP server (skills: crownos-computer-use, crownos-browser,
-crownos-context); ${web}; themes and plugins through crownplugin (skill: crownos-plugins).
+documented per key in /usr/share/doc/crownos/config/index.md (skill: crownos-config).
+${desktop}${web}; themes and plugins through crownplugin (skill: crownos-plugins).${secrets}
 CONTEXT

@@ -1,0 +1,17 @@
+{
+  "crownos-computer-use": {
+    "package": "crownos-computer-use",
+    "command": "crownos-computer-use",
+    "args": ["mcp"]
+  },
+  "playwright": {
+    "package": "crownos-setup",
+    "command": "crownos-setup",
+    "args": ["playwright-mcp"]
+  },
+  "crownos-secrets": {
+    "package": "crownos-secrets-manager",
+    "command": "crownos-secrets-mcp",
+    "args": []
+  }
+}

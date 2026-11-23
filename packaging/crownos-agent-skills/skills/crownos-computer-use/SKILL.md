@@ -52,8 +52,9 @@ work on yours.
 
 ## Rules
 
-- Never type into a field whose role or name says password, PIN, secret or OTP. The tree marks
-  them `secure`; `act` refuses `type_text` and `set_value` on them, and so should you.
+- To enter a password or key, never type it: call `type_secret {ref, name}` or `fill_login`. List
+  names with the crownos-secrets tools; if one is missing, use `secrets_request`.
+  `act` refuses `type_text` and `set_value` on elements marked `secure` (skill: crownos-secrets).
 - Never dismiss a permission prompt, a lock screen or a compositor dialog. Those are the user's.
 - Read before acting: snapshot, confirm the element, then act once. Do not retry a click in a
   loop; snapshot again and look at what changed.

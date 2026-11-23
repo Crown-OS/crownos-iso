@@ -1,6 +1,6 @@
 # crownos
 
-The CrownOS desktop for Claude Code. The plugin has skills, hooks and two MCP server entries.
+The CrownOS desktop for Claude Code. The plugin has skills, hooks and MCP server entries.
 
 The skills explain these tasks:
 
@@ -8,6 +8,7 @@ The skills explain these tasks:
 - Operate desktop apps through the `crownos-computer-use` MCP server.
 - Drive web pages through the `playwright` MCP server.
 - Use the memory of the visual context engine.
+- Use passwords and API keys by name, without seeing a value.
 - Write themes and plugins.
 
 The hooks turn permission prompts, idle waits and finished turns into crownotify cards.
@@ -15,9 +16,8 @@ The hooks turn permission prompts, idle waits and finished turns into crownotify
 The `crownos-agent-skills` package installs the plugin system-wide. Managed settings force-enable
 it, so you do not need to set it up.
 
-The MCP server entries are:
+The MCP server entries are these. Each one is in the plugin only when the ISO ships its package:
 
-- `crownos-computer-use` runs `crownos-computer-use mcp`. It starts once the crownos-computer-use
-  component is installed.
-- `playwright` runs `crownos-setup playwright-mcp`. This entry is added when the `crownos-setup`
-  package is in the ISO.
+- `crownos-computer-use` runs `crownos-computer-use mcp`, from the crownos-computer-use component.
+- `playwright` runs `crownos-setup playwright-mcp`, from the `crownos-setup` package.
+- `crownos-secrets` runs `crownos-secrets-mcp`, from the crownos-secrets-manager component.
