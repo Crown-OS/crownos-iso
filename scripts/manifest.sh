@@ -137,7 +137,7 @@ published() {
     local channel=${1:?published needs CHANNEL} repo_dir=${2:?published needs REPO_DIR}
     [[ $channel == @(testing|stable) ]] || die "the channel is testing or stable, not $channel"
     validate
-    local name versions=() version build_id restart releases all_names system_names
+    local name versions=() version build_id restart retired releases all_names system_names
     mapfile -t all_names < <(names all)
     mapfile -t system_names < <(names system)
     for name in "${@:3}"; do
@@ -150,11 +150,13 @@ published() {
     version=$(release_field "$repo_dir" VERSION_ID)
     build_id=$(release_field "$repo_dir" BUILD_ID)
     restart=$(release_restart "$version" "$channel")
+    retired=$(release_retired "$version")
     releases=$(release_chain "$version" | jq -R . | jq -s .)
     jq -n --arg version "$version" --arg build_id "$build_id" --arg channel "$channel" --arg restart "$restart" \
-        --argjson releases "$releases" --argjson system "$(printf '%s\n' "${system_names[@]}" | jq -R . | jq -s .)" '
+        --argjson releases "$releases" --argjson retired "$retired" \
+        --argjson system "$(printf '%s\n' "${system_names[@]}" | jq -R . | jq -s .)" '
         {version: $version, build_id: $build_id, channel: $channel, restart: $restart, notes: "notes.md",
-         releases: $releases, packages: $system,
+         releases: $releases, packages: $system, retired: $retired,
          package: [$ARGS.positional as $pairs | range(0; $pairs | length; 2) | {name: $pairs[.], version: $pairs[. + 1]}]}' --args "${versions[@]}" |
         toml write --bare
 }

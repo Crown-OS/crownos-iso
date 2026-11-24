@@ -6,7 +6,7 @@ missing or not valid.
 
 | File | Required | Contents |
 |---|---|---|
-| `release.toml` | yes | `restart = "session"`, `"soft-reboot"` or `"reboot"` |
+| `release.toml` | yes | `restart = "session"`, `"soft-reboot"` or `"reboot"`, and an optional `retired = ["package", ...]` |
 | `notes.md` | yes | The highlights of the release, in Markdown |
 | `post-update.sh` | no | A bash script that runs as root after the update |
 
@@ -21,7 +21,54 @@ The restart that the update needs after it installs the packages:
 - `reboot`: the computer restarts. Use it when the kernel or the initramfs
   changed, or when you are not sure.
 
+`scripts/gate.sh` refuses `session` when a system unit, a user unit, a
+`.wants` link or a line of `80-crownos.preset` in `packaging/` was added,
+changed or removed since the previous tag. A session restart does not restart
+the system manager or the user manager, so these changes start only at the next
+boot or login. The gate does not see the units that a component package ships
+itself. Check them yourself.
+
 Testing builds between two tags have no directory and use `reboot`.
+
+## retired
+
+The packages that the release removes from updated systems. Use it when you
+remove a component from `components.toml` and no other package replaces it.
+For a rename or a merge, use `replaces=` and `conflicts=` in the PKGBUILD of the
+new package, as `crownos-base` does for `crownos-desktop`.
+
+```toml
+restart = "soft-reboot"
+retired = ["crownos-oldtool"]
+```
+
+`scripts/manifest.sh` copies the list into the published manifest. After the
+pacman transaction, `crownos-updated` removes each retired package that is
+installed, with `pacman -Rs`. It skips the packages that are not installed. If
+the removal fails, the update fails. `scripts/gate.sh` refuses a name that is
+not a package name, and a name that `components.toml` still lists.
+
+The update to a release runs the `crownos-updated` of the release before it.
+The `crownos-updated` of 0.3.0 and earlier does not know `retired` and does
+not remove the packages. To remove them on an update from such a release, use
+`post-update.sh`.
+
+## New system units
+
+`packaging/crownos-base/80-crownos.preset` is the list of the system units that
+CrownOS enables. To enable a new system daemon, add an `enable` line for its
+unit there. Do not add it to the installer. The installer runs `systemctl
+preset` for the units of the file. After the update, `crownos-updated` runs
+`systemctl preset` only for the units of lines that are new since the last
+update, so a unit that the user disabled stays disabled. It records the
+applied lines in `/var/lib/crownos/update/applied-presets`. A system that has
+no record (installed with 0.3.0 or earlier) gets the units that the old
+installer enabled as its record. The `crownos-updated` of 0.3.0 and earlier
+does not read the preset file, so on an update from such a release the new
+units are enabled at the update after it.
+
+New user units start through `default.target.wants` links in `crownos-base`.
+Use `soft-reboot` or `reboot` for a release that adds a unit.
 
 ## notes.md
 
