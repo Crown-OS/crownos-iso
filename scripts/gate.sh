@@ -65,6 +65,30 @@ check_restart_starts_changed_units() {
     [[ -z $changed ]] || die "releases/$version/release.toml: restart = \"session\" does not start the units that changed since v$previous; use soft-reboot or reboot:"$'\n'"$changed"
 }
 
+# crownos-config 0.2.0 reads the distro defaults in /usr/share/crownos/defaults
+# below the user's changes, and it reduces the user's file. An older reader
+# reads only the user's file and gets nothing from crownos-base, so one ISO
+# must not mix the two.
+layered_config_version=0.2.0
+
+pinned_crownos_config_version() {
+    local repo=$1 tag=$2
+    gh api -H 'Accept: application/vnd.github.raw' "repos/$repo/contents/Cargo.lock?ref=$tag" 2>/dev/null |
+        awk '/^name = "crownos-config"$/ { found = 1; next } found && /^version = / { gsub(/"/, "", $3); print $3; exit }'
+}
+
+check_layered_config_readers() {
+    local repo tag used old=()
+    while read -r repo tag; do
+        used=$(pinned_crownos_config_version "$repo" "$tag")
+        [[ -z $used ]] || (($(vercmp "$used" "$layered_config_version") >= 0)) ||
+            old+=("$repo $tag: crownos-config $used")
+    done < <(manifest_json | jq -r '[.package[] | select(.repo) | "\(.repo) \(.tag)"] | unique[]')
+    ((${#old[@]} == 0)) && return 0
+    printf '%s\n' "${old[@]}" >&2
+    die "the components above read the config without the default layers; rebuild and tag them with crownos-config $layered_config_version"
+}
+
 version=$(iso_version)
 if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     check_release_directory "$version"
@@ -83,3 +107,5 @@ if ((${#stale[@]})); then
     die "tag the components above and pin them with scripts/pin.sh, or set allow_stale = true"
 fi
 echo "every pinned component is at the head of its default branch"
+check_layered_config_readers
+echo "every pinned component reads the default layers"

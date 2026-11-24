@@ -14,7 +14,7 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 history=$root/defaults-history
 applications=/usr/share/applications
 setup_browsers=(brave-browser google-chrome firefox)
-system_path_dotfiles='^config/(fish/config\.fish|kitty/|fastfetch/|starship\.toml$|mimeapps\.list$|crownos/templates/)'
+system_path_dotfiles='^config/(fish/config\.fish|kitty/kitty\.conf|fastfetch/config\.jsonc|starship\.toml|mimeapps\.list)$'
 
 write_release() {
     local tag=$1 version=${1#v} file
