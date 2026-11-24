@@ -62,10 +62,13 @@ sign iso="":
 reset-vm:
     rm -f target/disk.qcow2 target/OVMF_VARS.fd
 
-# Lint the scripts, PKGBUILDs and post-update scripts and validate components.toml
+# Lint the scripts, PKGBUILDs and post-update scripts, and validate components.toml and the
+# distro defaults against the crownos-config schema
 check:
     for script in scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/*; do bash -n "$script" || exit 1; done
-    shellcheck -x scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/*
+    shellcheck -x scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/* packaging/crownos-base/crownos-desktop packaging/crownos-base/remove-shipped-dotfiles
+    cargo run -q --locked --manifest-path "${CROWNOS_SIBLINGS:-..}/crownos-config/Cargo.toml" -p xtask -- check-defaults config/crownos
+    cargo run -q --locked --manifest-path "${CROWNOS_SIBLINGS:-..}/crownos-config/Cargo.toml" -p xtask -- check-defaults profile/airootfs/etc/crownos/defaults
     for script in releases/*/post-update.sh; do if [ -e "$script" ]; then bash -n "$script" && shellcheck -s bash "$script" || exit 1; fi; done
     python3 -I scripts/toml.py json components.toml | python3 -I scripts/toml.py write | diff - components.toml
     scripts/manifest.sh names all >/dev/null

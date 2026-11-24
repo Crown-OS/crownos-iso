@@ -1,6 +1,6 @@
 # shellcheck shell=bash disable=SC2034,SC2154
 # The CrownOS system defaults every install carries: the services the desktop
-# needs, the skel configs from config/, the CrownOS GTK and icon themes and
+# needs, the distro defaults and dotfiles from config/, the CrownOS GTK and icon themes and
 # wallpapers, the launcher that opens the desktop when a user signs in on tty1,
 # the drive automounter's user unit and polkit rule, the units of crownos-updated
 # and its notifier, and the boot recovery files from packaging/boot/. The
@@ -26,13 +26,15 @@ mapfile -t depends < <(grep -Ev '^[[:space:]]*(#|$)' "$startdir/../desktop.depen
 depends+=(snapper snap-pac refind)
 
 _config=$startdir/../../config
+_defaults_history=$startdir/../../defaults-history
 _boot=$startdir/../boot
 [[ -e $_boot/snapper/root ]] && backup=(etc/snapper/configs/root)
 
 package() {
-    install -d "$pkgdir/usr/share/themes" "$pkgdir/usr/share/icons" "$pkgdir/etc/skel/.config"
-    cp -r --no-preserve=ownership -- "$_config/." "$pkgdir/etc/skel/.config/"
+    install -d "$pkgdir/usr/share/themes" "$pkgdir/usr/share/icons"
     cp -r --no-preserve=ownership -- "$_config/gtk/." "$pkgdir/usr/share/themes/"
+    _package_defaults
+    _package_dotfiles
     "${CROWNOS_ICON_THEME:?}/install.sh" --dest "$pkgdir/usr/share/icons"
     install -Dm644 -t "$pkgdir/usr/share/backgrounds/crownos" "$startdir"/backgrounds/*
     install -Dm644 -t "$pkgdir/usr/share/glib-2.0/schemas" "$startdir/90_crownos-theme.gschema.override"
@@ -55,6 +57,33 @@ package() {
     install -d "$pkgdir/etc/fonts/conf.d"
     ln -s /usr/share/fontconfig/conf.avail/60-crownos-fonts.conf "$pkgdir/etc/fonts/conf.d/"
     _package_boot_recovery
+}
+
+# crownos-config reads /usr/share/crownos/defaults below each user's own
+# changes, so a system update changes every default that the user did not
+# change. defaults-history/ lets crownos-config reduce a home file that an
+# earlier release copied in full; remove-shipped-dotfiles does the same for
+# the dotfiles that now have a system path.
+_package_defaults() {
+    install -Dm644 -t "$pkgdir/usr/share/crownos/defaults" "$_config"/crownos/*.ron
+    install -Dm644 -t "$pkgdir/usr/share/crownos/templates" "$_config"/templates/*
+    install -d "$pkgdir/usr/share/crownos/defaults-history"
+    cp -r --no-preserve=ownership -- "$_defaults_history/." "$pkgdir/usr/share/crownos/defaults-history/"
+    install -Dm755 -t "$pkgdir/usr/lib/crownos" "$startdir/remove-shipped-dotfiles"
+}
+
+# Each tool reads its system file when the user has no own file, so these
+# follow system updates. The other dotfiles have no system path, or name
+# their own directory (Neovim), and are copied once into each new home.
+_package_dotfiles() {
+    install -d "$pkgdir/etc/xdg"
+    cp -r --no-preserve=ownership -- "$_config/kitty" "$_config/fastfetch" "$pkgdir/etc/xdg/"
+    install -Dm644 "$_config/fish/config.fish" "$pkgdir/usr/share/fish/vendor_conf.d/crownos-shell.fish"
+    install -Dm644 -t "$pkgdir/usr/share/crownos" "$_config/starship.toml"
+    install -Dm644 -t "$pkgdir/usr/share/applications" "$_config/mimeapps.list"
+    install -d "$pkgdir/etc/skel/.config"
+    cp -r --no-preserve=ownership -- "$_config/nvim" "$_config/yazi" "$_config/xdg-terminals.list" \
+        "$_config"/*-flags.conf "$pkgdir/etc/skel/.config/"
 }
 
 # crownos-updated and crownos-update-notify ship in crownos-update, which

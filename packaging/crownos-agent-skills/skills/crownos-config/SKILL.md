@@ -10,13 +10,27 @@ Every setting is one RON file in `~/.config/crownos/`, named after its section:
 panel, the bar, the compositor and every other app read the same files through `crownos-config`
 and watch them, so a saved edit applies at once. Editing the file is the settings panel.
 
+The user's file holds only the keys that the user changed. Each key that it leaves out comes
+from the layers below it, and the highest layer that has the key wins:
+
+1. `~/.config/crownos/<section>.ron`: the user's changes. Edit only this file.
+2. `/etc/crownos/defaults/<section>.ron`: the defaults of this machine, if any.
+3. `/usr/share/crownos/defaults/<section>.ron`: the CrownOS defaults. Each system update replaces
+   them, so do not edit them.
+4. The default of each key in the reference.
+
+To find the current value of a key, read the layers in that order. A key in the user's file stays
+at the user's value after an update. A list is one key: to add one item to a list that a lower
+layer sets, copy the whole list into the user's file. That stops updates from changing that list,
+so for startup programs use `startup`, which no lower layer sets, and not `session_startup`.
+
 ## Workflow
 
 1. Find the section and key in the reference: `/usr/share/doc/crownos/config/index.md` lists every
    section with who reads it; `/usr/share/doc/crownos/config/<section>.md` lists each key with its
    type, default, meaning, the enum variants it accepts, and a complete example file.
-2. Read the current file. A missing file means every key is at its default; the reference's
-   example block is exactly that file.
+2. Read the current file and the layers below it. A missing user file means that every key comes
+   from the layers.
 3. Edit only the keys you mean to change. A key left out keeps its default, so a file may hold a
    single key. Keep the surrounding parentheses: a section is one RON struct, `( key: value, )`.
 4. Save atomically if scripting: write `<file>.tmp` beside it and rename over the original. Apps
@@ -38,7 +52,7 @@ and watch them, so a saved edit applies at once. Editing the file is the setting
 | You want to change | Section | Notes |
 |---|---|---|
 | Dark mode, accent, wallpaper, gaps, borders, blur, animations, cursor and icon theme | `appearance` | Read live by the compositor and every app |
-| Tiling or floating default, window rules, outputs, startup programs, gaming | `compositor` | Rules match `app_id` and `title` as regexes |
+| Tiling or floating default, window rules, outputs, startup programs, gaming | `compositor` | Rules match `app_id` and `title` as regexes; add programs to `startup` |
 | Global shortcuts | `keybinds` | Chords like `"Super+Shift+Q"`; actions are the compositor's own names |
 | Bar position, size, which widgets, floating bar | `bar` | Plugin widgets are `"plugin:<id>/<widget>"` |
 | Lock screen clock, background, slots, idle lock | `lock` | |
@@ -47,7 +61,8 @@ and watch them, so a saved edit applies at once. Editing the file is the setting
 | Notifications, sound, wifi, bluetooth, display | their own section | |
 | Themes and plugins | `plugins` | Written only by `crownplugind`: use the `crownos-plugins` skill, not this file |
 
-The live system's default files also sit in `/etc/skel/.config/crownos/` for comparison.
+The CrownOS defaults are in `/usr/share/crownos/defaults/`. To make a key follow the defaults
+again, remove it from the user's file.
 
 ## Example: a floating desktop with a bottom bar and a blue accent
 

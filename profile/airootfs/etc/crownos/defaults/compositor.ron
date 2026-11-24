@@ -1,7 +1,8 @@
-// The live image's desktop, staged into the live user's writable CrownOS config
-// directory by scripts/build.sh, so the installer opens over the desktop.
+// The machine defaults of the live image: the whole desktop and the installer,
+// over the distro defaults in /usr/share/crownos/defaults/compositor.ron. The
+// installer installs from packages, so this file does not reach the new system.
 (
-    startup: [
+    session_startup: [
         "crownpaper",
         "crownbar",
         "crowndock",
@@ -15,5 +16,4 @@
         (app_id: "^crownos-installer$", fullscreen: true),
         (app_id: "^steam_app_", tearing: true, vrr: true),
     ],
-    gaming: (allow_tearing: true),
 )

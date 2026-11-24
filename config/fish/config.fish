@@ -1,3 +1,6 @@
+if not test -e ~/.config/starship.toml
+    set -gx STARSHIP_CONFIG /usr/share/crownos/starship.toml
+end
 starship init fish | source
 
 function neofetch

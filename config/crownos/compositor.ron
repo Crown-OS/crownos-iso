@@ -1,6 +1,8 @@
-// Start Crownpaper, the polkit agent and the theme engine automatically for installed CrownOS users.
+// The distro defaults of the compositor. crownos-base installs this file to
+// /usr/share/crownos/defaults/, and each system update replaces it. A user
+// adds own programs to `startup` in ~/.config/crownos/compositor.ron.
 (
-    startup: [
+    session_startup: [
         "crownpaper",
         "crownos-polkit-agent",
         "crownos-theme-engine watch",

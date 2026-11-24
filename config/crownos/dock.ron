@@ -1,7 +1,7 @@
 (
     items: [
         "/usr/share/applications/kitty.desktop",
-        "/usr/share/applications/chromium.desktop",
+        "web-browser",
         "/usr/share/applications/crownos-files.desktop",
         "/usr/share/applications/crownappstore.desktop",
         "/usr/share/applications/crownos-preview.desktop",

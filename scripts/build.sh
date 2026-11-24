@@ -32,9 +32,8 @@ staged_mirror=$profile/airootfs/var/cache/crownos/mirror
 staged_installer=$profile/airootfs/usr/bin/crownos-installer
 staged_key=$profile/airootfs/usr/share/crownos/crownos-archive-keyring.asc
 staged_manifest=$profile/airootfs/usr/share/crownos/manifest.toml
-staged_root_config=$profile/airootfs/root/.config
-staged_live_config=$profile/airootfs/home/crownos-live/.config
 staged_live_home=$profile/airootfs/home/crownos-live
+skel_packages=(crownos-base crownos-neovim crownos-yazi)
 staged_pacman_conf=$profile/airootfs/etc/pacman.conf
 keyring=$root/packaging/crownos-keyring/crownos.gpg
 package_cache=$target/pkg-cache
@@ -122,35 +121,18 @@ stage_manifest() {
     "$root/scripts/manifest.sh" published "$(default_channel)" "$repo_dir" "${local_system_packages[@]}" >"$staged_manifest"
 }
 
-stage_root_config() {
-    rm -rf -- "$staged_root_config"
-    mkdir -p -- "$staged_root_config"
-    cp -r -- "$root/config/." "$staged_root_config/"
-}
-
-stage_live_config() {
-    rm -rf -- "$staged_live_config"
-    mkdir -p -- "$staged_live_config/crownos"
-    cp -r -- "$root/config/." "$staged_live_config/"
-    cp -- "$profile/airootfs/usr/share/crownos/live/compositor.ron" \
-        "$staged_live_config/crownos/compositor.ron"
-}
-
-# crownos-neovim puts Neovim's plugins and parsers in /etc/skel, which the
-# prebuilt live home never copies from, so its files are unpacked there too.
-stage_live_nvim_data() {
-    local packages=("$repo_dir"/crownos-neovim-*.pkg.tar.zst)
-    ((${#packages[@]} == 1)) || die "$repo_dir needs exactly one crownos-neovim package"
-    rm -rf -- "$staged_live_home/.local"
-    bsdtar -xf "${packages[0]}" -C "$staged_live_home" --strip-components 2 etc/skel/.local
-}
-
-# crownos-yazi puts Yazi's plugins in /etc/skel, which the prebuilt live home
-# never copies from, so its plugins are unpacked into the live config too.
-stage_live_yazi_plugins() {
-    local packages=("$repo_dir"/crownos-yazi-*.pkg.tar.zst)
-    ((${#packages[@]} == 1)) || die "$repo_dir needs exactly one crownos-yazi package"
-    bsdtar -xf "${packages[0]}" -C "$staged_live_config" --strip-components 3 etc/skel/.config/yazi/plugins
+# The prebuilt live home never copies from /etc/skel, so the skel files of the
+# packages that have them are unpacked into it. The CrownOS defaults come from
+# /usr/share/crownos/defaults and /etc/crownos/defaults, not from the home.
+stage_live_home() {
+    local package_name packages
+    rm -rf -- "$staged_live_home/.config" "$staged_live_home/.local"
+    mkdir -p -- "$staged_live_home/.config/crownos"
+    for package_name in "${skel_packages[@]}"; do
+        packages=("$repo_dir/$package_name"-[0-9]*.pkg.tar.zst)
+        ((${#packages[@]} == 1)) || die "$repo_dir needs exactly one $package_name package"
+        bsdtar -xf "${packages[0]}" -C "$staged_live_home" --strip-components 2 etc/skel
+    done
 }
 
 stage_pacman_conf() {
@@ -198,10 +180,7 @@ write_pacman_conf
 stage_install_list
 stage_live_list
 stage_manifest
-stage_root_config
-stage_live_config
-stage_live_nvim_data
-stage_live_yazi_plugins
+stage_live_home
 stage_pacman_conf
 stage_repo_key
 stage_mirror

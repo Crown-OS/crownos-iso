@@ -68,7 +68,7 @@ jobs:
     container: archlinux:latest
     steps:
       - name: Toolchain
-        run: pacman -Syu --noconfirm --needed base-devel github-cli git neovim yazi python jq shellcheck just pacman-contrib libarchive sudo gtk-update-icon-cache
+        run: pacman -Syu --noconfirm --needed base-devel github-cli git neovim yazi python jq shellcheck just rust pacman-contrib libarchive sudo gtk-update-icon-cache
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -84,6 +84,10 @@ jobs:
         with:
           repository: Crown-OS/crownos-config
           path: siblings/crownos-config
+      - uses: actions/checkout@v7
+        with:
+          repository: Crown-OS/vendor
+          path: siblings/vendor
       - name: Build user
         run: &builder |
           useradd --create-home builder
@@ -96,6 +100,8 @@ jobs:
           chmod 755 /usr/local/bin/as-builder
           chown -R builder "$GITHUB_WORKSPACE"
       - name: Lint and validate
+        env:
+          CROWNOS_SIBLINGS: ${{ github.workspace }}/siblings
         run: as-builder just check
       - name: Resolve the manifest
         run: as-builder scripts/manifest.sh resolve target/repo --icon-theme "$GITHUB_WORKSPACE/crownos-icon-theme" --siblings "$GITHUB_WORKSPACE/siblings"
