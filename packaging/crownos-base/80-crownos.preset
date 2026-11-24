@@ -1,0 +1,9 @@
+# The system units that CrownOS turns on. crownos-installer enables them at
+# install. After an update, crownos-updated enables only the units of lines
+# that are new since the last update, so a unit that the user disabled stays
+# disabled. Add a line here for each new system daemon, not in the installer.
+enable NetworkManager.service
+enable systemd-timesyncd.service
+enable power-profiles-daemon.service
+enable snapper-cleanup.timer
+enable crownos-updated.service

@@ -58,9 +58,11 @@ package() {
 }
 
 # crownos-updated and crownos-update-notify ship in crownos-update, which
-# packages only binaries (docs/publishing.md). The installer enables the daemon;
-# the notifier runs for every user through default.target.wants.
+# packages only binaries (docs/publishing.md). 80-crownos.preset enables the
+# daemon and the other system units; the notifier runs for every user through
+# default.target.wants.
 _package_updates() {
+    install -Dm644 -t "$pkgdir/usr/lib/systemd/system-preset" "$startdir/80-crownos.preset"
     install -Dm644 -t "$pkgdir/usr/lib/systemd/system" "$startdir/update/crownos-updated.service"
     install -Dm644 -t "$pkgdir/usr/lib/systemd/user" "$startdir/update/crownos-update-notify.service"
     install -d "$pkgdir/usr/lib/systemd/user/default.target.wants"
