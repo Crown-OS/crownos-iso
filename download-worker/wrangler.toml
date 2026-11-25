@@ -3,3 +3,7 @@ main = "src/index.js"
 compatibility_date = "2026-11-01"
 workers_dev = false
 routes = [{ pattern = "download.crownos.org", custom_domain = true }]
+
+[env.test]
+name = "crownos-download-test"
+routes = [{ pattern = "download-test.crownos.org", custom_domain = true }]
