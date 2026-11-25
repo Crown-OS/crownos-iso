@@ -62,27 +62,29 @@ package() {
 # crownos-config reads /usr/share/crownos/defaults below each user's own
 # changes, so a system update changes every default that the user did not
 # change. defaults-history/ lets crownos-config reduce a home file that an
-# earlier release copied in full; remove-shipped-dotfiles does the same for
-# the dotfiles that now have a system path.
+# earlier release copied in full; refresh-shipped-dotfiles replaces the
+# unchanged dotfiles that an earlier release copied.
 _package_defaults() {
     install -Dm644 -t "$pkgdir/usr/share/crownos/defaults" "$_config"/crownos/*.ron
     install -Dm644 -t "$pkgdir/usr/share/crownos/templates" "$_config"/templates/*
     install -d "$pkgdir/usr/share/crownos/defaults-history"
     cp -r --no-preserve=ownership -- "$_defaults_history/." "$pkgdir/usr/share/crownos/defaults-history/"
-    install -Dm755 -t "$pkgdir/usr/lib/crownos" "$startdir/remove-shipped-dotfiles"
+    install -Dm755 -t "$pkgdir/usr/lib/crownos" "$startdir/refresh-shipped-dotfiles"
 }
 
 # Each tool reads its system file when the user has no own file, so these
-# follow system updates. The other dotfiles have no system path, or name
-# their own directory (Neovim), and are copied once into each new home.
+# follow system updates. Kitty reads only its first file, so the home file
+# from skel includes the system file and shows the defaults commented out.
+# The other dotfiles have no system path, or name their own directory
+# (Neovim), and are copied once into each new home.
 _package_dotfiles() {
     install -d "$pkgdir/etc/xdg"
-    cp -r --no-preserve=ownership -- "$_config/kitty" "$_config/fastfetch" "$pkgdir/etc/xdg/"
+    cp -r --no-preserve=ownership -- "$_config/fastfetch" "$pkgdir/etc/xdg/"
     install -Dm644 "$_config/fish/config.fish" "$pkgdir/usr/share/fish/vendor_conf.d/crownos-shell.fish"
     install -Dm644 -t "$pkgdir/usr/share/crownos" "$_config/starship.toml"
     install -Dm644 -t "$pkgdir/usr/share/applications" "$_config/mimeapps.list"
     install -d "$pkgdir/etc/skel/.config"
-    cp -r --no-preserve=ownership -- "$_config/nvim" "$_config/yazi" "$_config/xdg-terminals.list" \
+    cp -r --no-preserve=ownership -- "$_config/kitty" "$_config/nvim" "$_config/yazi" "$_config/xdg-terminals.list" \
         "$_config"/*-flags.conf "$pkgdir/etc/skel/.config/"
 }
 

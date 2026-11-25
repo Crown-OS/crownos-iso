@@ -7,7 +7,7 @@ export XDG_ICON_THEME=CrownOS-dark
 export CROWN_BACKEND=kms
 export LIBSEAT_BACKEND=logind
 
-/usr/lib/crownos/remove-shipped-dotfiles || true
+/usr/lib/crownos/refresh-shipped-dotfiles || true
 
 status=75
 while [ "$status" -eq 75 ]; do

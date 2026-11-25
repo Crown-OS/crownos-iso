@@ -6,7 +6,7 @@
 # defaults-history/<version>+<browser>/dock.ron. crownos-config reduces a user
 # file to the keys that differ from all of these. defaults-history/dotfiles.sha256
 # lists each shipped version of the dotfiles that now have a system path, for
-# remove-shipped-dotfiles. Run it after you tag a release that changed config/,
+# refresh-shipped-dotfiles. Run it after you tag a release that changed config/,
 # and commit the result.
 set -euo pipefail
 

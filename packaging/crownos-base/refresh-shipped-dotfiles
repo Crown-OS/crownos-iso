@@ -1,0 +1,33 @@
+#!/bin/sh
+# Releases up to 0.3.0 copied dotfiles into each new home. A home copy hides
+# the system file, so system updates did not reach it. Each copy that is the
+# same as a version that CrownOS shipped is replaced by the current skel
+# version, or removed when skel has none, so the system file applies. A file
+# that the user changed stays. crownos-desktop runs it before the desktop
+# starts, one time for each version of the list.
+set -eu
+
+list=/usr/share/crownos/defaults-history/dotfiles.sha256
+skel=/etc/skel/.config
+config=${XDG_CONFIG_HOME:-$HOME/.config}
+marker=${XDG_STATE_HOME:-$HOME/.local/state}/crownos/shipped-dotfiles-refreshed
+
+[ -r "$list" ] || exit 0
+list_hash=$(sha256sum <"$list")
+[ -r "$marker" ] && [ "$(cat -- "$marker")" = "$list_hash" ] && exit 0
+
+while read -r shipped_hash relative_path; do
+    file=$config/$relative_path
+    [ -f "$file" ] && [ ! -L "$file" ] || continue
+    file_hash=$(sha256sum <"$file")
+    [ "${file_hash%% *}" = "$shipped_hash" ] || continue
+    if [ -f "$skel/$relative_path" ]; then
+        cp -- "$skel/$relative_path" "$file"
+    else
+        rm -f -- "$file"
+        rmdir -- "${file%/*}" 2>/dev/null || true
+    fi
+done <"$list"
+
+mkdir -p -- "${marker%/*}"
+printf '%s\n' "$list_hash" >"$marker"
