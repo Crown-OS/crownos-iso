@@ -39,7 +39,9 @@ on:
   pull_request:
     paths:
       - components.toml
-      - config/**
+      - defaults/**
+      - dotfiles/**
+      - themes/**
       - scripts/**
       - packaging/**
       - profile/**

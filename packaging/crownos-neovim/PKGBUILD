@@ -20,7 +20,7 @@ options=(!debug !strip)
 _iso=$startdir/../..
 
 build() {
-    "$_iso/scripts/nvim-prefetch.sh" "$_iso/config" "$srcdir/data"
+    "$_iso/scripts/nvim-prefetch.sh" "$_iso/dotfiles/etc/skel/.config" "$srcdir/data"
 }
 
 package() {

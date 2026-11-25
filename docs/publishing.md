@@ -220,7 +220,7 @@ crownos-iso (`github.token` in CI).
 | `crownos-release` | `/usr/lib/crownos/os-release`, a pacman hook copying it over `/usr/lib/os-release`, and `/usr/lib/crownos/post-update` when the release has a `post-update.sh` |
 | `crownos-keyring` | the repository key for `pacman-key --populate crownos` |
 | `crownos-source` | opt-in: `-march=native` and paru's `[crownos-src]` |
-| `crownos-yazi` | the Yazi plugins pinned in `config/yazi/package.toml`, fetched with `ya pkg install` into `/etc/skel/.config/yazi/plugins`; depends on the tools those plugins call |
+| `crownos-yazi` | the Yazi plugins pinned in `dotfiles/etc/skel/.config/yazi/package.toml`, fetched with `ya pkg install` into `/etc/skel/.config/yazi/plugins`; depends on the tools those plugins call |
 | `crownos-agent-skills` | the skills coding agents read about CrownOS (`/usr/share/crownos/skills`, linked into Claude Code's and Codex's system skill folders), a Claude Code plugin with crownotify hooks and the MCP servers whose package `components.toml` ships (`crownos-computer-use`, `playwright`, `crownos-secrets`) in a local marketplace that `/etc/claude-code/managed-settings.d/50-crownos.json` force-enables, the settings reference from `crownos-config`'s `cargo xtask config-docs`, and the `crownos-agent-skills` per-user setup, the fallback when `crownos-setup user` from the `crownos-setup` package is not installed; built from the sibling checkouts named in `packaging/crownos-agent-skills/README.md` |
 
 `filesystem` owns `/usr/lib/os-release` and the `/etc/os-release` link, so

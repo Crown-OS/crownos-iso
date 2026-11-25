@@ -67,8 +67,8 @@ reset-vm:
 check:
     for script in scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/*; do bash -n "$script" || exit 1; done
     shellcheck -x scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/* packaging/crownos-base/crownos-desktop packaging/crownos-base/refresh-shipped-dotfiles
-    cargo run -q --locked --manifest-path "${CROWNOS_SIBLINGS:-..}/crownos-config/Cargo.toml" -p xtask -- check-defaults config/crownos
-    cargo run -q --locked --manifest-path "${CROWNOS_SIBLINGS:-..}/crownos-config/Cargo.toml" -p xtask -- check-defaults profile/airootfs/etc/crownos/defaults
+    cargo run -q --locked --manifest-path "${CROWNOS_SIBLINGS:-..}/crownos-config/Cargo.toml" -p xtask -- check-defaults defaults
+    cargo run -q --locked --manifest-path "${CROWNOS_SIBLINGS:-..}/crownos-config/Cargo.toml" -p xtask -- check-defaults defaults/live
     for script in releases/*/post-update.sh; do if [ -e "$script" ]; then bash -n "$script" && shellcheck -s bash "$script" || exit 1; fi; done
     python3 -I scripts/toml.py json components.toml | python3 -I scripts/toml.py write | diff - components.toml
     scripts/manifest.sh names all >/dev/null

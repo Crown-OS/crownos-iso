@@ -1,4 +1,4 @@
--- Run by nvim-prefetch.sh inside a headless Neovim that loaded config/nvim.
+-- Run by nvim-prefetch.sh inside a headless Neovim that loaded dotfiles/etc/skel/.config/nvim.
 -- Installs every plugin at its lazy-lock.json commit, every treesitter parser
 -- and blink.cmp's fuzzy library into the data directory and exits non-zero if
 -- any of them is missing.

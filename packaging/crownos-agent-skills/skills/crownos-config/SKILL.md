@@ -10,8 +10,9 @@ Every setting is one RON file in `~/.config/crownos/`, named after its section:
 panel, the bar, the compositor and every other app read the same files through `crownos-config`
 and watch them, so a saved edit applies at once. Editing the file is the settings panel.
 
-The user's file holds only the keys that the user changed. Each key that it leaves out comes
-from the layers below it, and the highest layer that has the key wins:
+The user's file sets only the keys that the user changed. It lists every other key as a `//`
+comment with its current default, so a comment line is not a value. Each key that the file does
+not set comes from the layers below it, and the highest layer that has the key wins:
 
 1. `~/.config/crownos/<section>.ron`: the user's changes. Edit only this file.
 2. `/etc/crownos/defaults/<section>.ron`: the defaults of this machine, if any.
@@ -29,10 +30,12 @@ so for startup programs use `startup`, which no lower layer sets, and not `sessi
 1. Find the section and key in the reference: `/usr/share/doc/crownos/config/index.md` lists every
    section with who reads it; `/usr/share/doc/crownos/config/<section>.md` lists each key with its
    type, default, meaning, the enum variants it accepts, and a complete example file.
-2. Read the current file and the layers below it. A missing user file means that every key comes
-   from the layers.
-3. Edit only the keys you mean to change. A key left out keeps its default, so a file may hold a
-   single key. Keep the surrounding parentheses: a section is one RON struct, `( key: value, )`.
+2. Read the current file and the layers below it. A `//` line shows a default, not a user value.
+   A missing user file means that every key comes from the layers.
+3. Edit only the keys you mean to change. To set a commented key, remove `// ` from each line of
+   that entry and change the value. To go back to the default, comment the entry out again. Keep
+   the surrounding parentheses: a section is one RON struct, `( key: value, )`. A program that
+   saves the section writes the file again and does not keep comments that you add.
 4. Save atomically if scripting: write `<file>.tmp` beside it and rename over the original. Apps
    never see a half-written file that way, which is what `crownos-config` itself does.
 5. Confirm the change took: the compositor and bar react within a frame; apps that read at

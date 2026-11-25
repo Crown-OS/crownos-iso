@@ -1,27 +1,28 @@
 #!/usr/bin/env bash
-# Writes defaults-history/<version>/<section>.ron: the distro defaults in
-# config/crownos/ at each released tag. Up to 0.3.0, crownos-base copied these
+# Writes defaults/history/<version>/<section>.ron: the distro defaults in
+# defaults/ (config/crownos/ up to 0.3.0) at each released tag. Up to 0.3.0, crownos-base copied these
 # files into each new home, and crownos-setup then put the chosen browser into
 # the dock, so each dock also gets one variant for each browser, in
-# defaults-history/<version>+<browser>/dock.ron. crownos-config reduces a user
-# file to the keys that differ from all of these. defaults-history/dotfiles.sha256
+# defaults/history/<version>+<browser>/dock.ron. crownos-config reduces a user
+# file to the keys that differ from all of these. defaults/history/dotfiles.sha256
 # lists each shipped version of the dotfiles that now have a system path, for
-# refresh-shipped-dotfiles. Run it after you tag a release that changed config/,
+# refresh-shipped-dotfiles. Run it after you tag a release that changed defaults/ or dotfiles/,
 # and commit the result.
 set -euo pipefail
 
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
-history=$root/defaults-history
+history=$root/defaults/history
 applications=/usr/share/applications
 setup_browsers=(brave-browser google-chrome firefox)
-system_path_dotfiles='^config/(fish/config\.fish|kitty/kitty\.conf|fastfetch/config\.jsonc|starship\.toml|mimeapps\.list)$'
+home_dotfile_directories=(config/ dotfiles/etc/skel/.config/)
+home_dotfiles='^(config/|dotfiles/etc/skel/\.config/)(fish/config\.fish|kitty/kitty\.conf|fastfetch/config\.jsonc|starship\.toml|mimeapps\.list)$'
 
 write_release() {
     local tag=$1 version=${1#v} file
     while IFS= read -r file; do
         mkdir -p -- "$history/$version"
         git -C "$root" show "$tag:$file" >"$history/$version/${file##*/}"
-    done < <(git -C "$root" ls-tree --name-only "$tag" config/crownos/ | grep '\.ron$')
+    done < <(git -C "$root" ls-tree --name-only "$tag" config/crownos/ defaults/ | grep '\.ron$')
 }
 
 write_dock_variants() {
@@ -38,8 +39,8 @@ write_dotfile_hashes() {
     local tag=$1 file hash
     while IFS= read -r file; do
         hash=$(git -C "$root" show "$tag:$file" | sha256sum)
-        printf '%s  %s\n' "${hash%% *}" "${file#config/}"
-    done < <(git -C "$root" ls-tree -r --name-only "$tag" config/ | grep -E "$system_path_dotfiles")
+        printf '%s  %s\n' "${hash%% *}" "$(sed -E "s#$home_dotfiles#\\2#" <<<"$file")"
+    done < <(git -C "$root" ls-tree -r --name-only "$tag" "${home_dotfile_directories[@]}" | grep -E "$home_dotfiles")
 }
 
 rm -rf -- "$history"

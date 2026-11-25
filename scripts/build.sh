@@ -35,6 +35,7 @@ staged_manifest=$profile/airootfs/usr/share/crownos/manifest.toml
 staged_live_home=$profile/airootfs/home/crownos-live
 skel_packages=(crownos-base crownos-neovim crownos-yazi)
 staged_pacman_conf=$profile/airootfs/etc/pacman.conf
+staged_live_defaults=$profile/airootfs/etc/crownos/defaults
 keyring=$root/packaging/crownos-keyring/crownos.gpg
 package_cache=$target/pkg-cache
 
@@ -135,6 +136,12 @@ stage_live_home() {
     done
 }
 
+# The live image's own defaults, over the distro defaults of crownos-base.
+stage_live_defaults() {
+    rm -rf -- "$staged_live_defaults"
+    install -Dm644 -t "$staged_live_defaults" "$root"/defaults/live/*.ron
+}
+
 stage_pacman_conf() {
     install -Dm644 -- "$profile/pacman.conf" "$staged_pacman_conf"
 }
@@ -181,6 +188,7 @@ stage_install_list
 stage_live_list
 stage_manifest
 stage_live_home
+stage_live_defaults
 stage_pacman_conf
 stage_repo_key
 stage_mirror
