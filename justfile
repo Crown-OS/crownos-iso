@@ -62,13 +62,17 @@ sign iso="":
 reset-vm:
     rm -f target/disk.qcow2 target/OVMF_VARS.fd
 
-# Lint the scripts, PKGBUILDs and post-update scripts and validate components.toml
+# Lint the scripts, PKGBUILDs and post-update scripts, and validate components.toml and the
+# distro defaults against the crownos-config schema
 check:
     for script in scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/*; do bash -n "$script" || exit 1; done
-    shellcheck -x scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/*
+    shellcheck -x scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/* packaging/crownos-base/session/crownos-desktop packaging/crownos-base/session/refresh-shipped-dotfiles
+    cargo run -q --locked --manifest-path "${CROWNOS_SIBLINGS:-..}/crownos-config/Cargo.toml" -p xtask -- check-defaults defaults
+    cargo run -q --locked --manifest-path "${CROWNOS_SIBLINGS:-..}/crownos-config/Cargo.toml" -p xtask -- check-defaults defaults/live
     for script in releases/*/post-update.sh; do if [ -e "$script" ]; then bash -n "$script" && shellcheck -s bash "$script" || exit 1; fi; done
     python3 -I scripts/toml.py json components.toml | python3 -I scripts/toml.py write | diff - components.toml
     scripts/manifest.sh names all >/dev/null
+    scripts/packages.sh check
     test "$(vercmp 0.1.11.r7.gf66daf5 0.1.11)" = 1
     test "$(vercmp 0.1.11.r7.gf66daf5 0.1.12)" = -1
     test "$(vercmp 0.1.11.r10.g0000000 0.1.11.r7.gf66daf5)" = 1

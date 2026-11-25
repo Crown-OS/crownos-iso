@@ -1,0 +1,7 @@
+(
+    items: [
+        "/usr/share/applications/kitty.desktop",
+        "/usr/share/applications/brave-browser.desktop",
+        "/usr/share/applications/crownos-settings.desktop",
+    ],
+)

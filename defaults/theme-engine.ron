@@ -1,0 +1,15 @@
+(
+    templates: [
+        (
+            name: "fastfetch-logo",
+            template: "/usr/share/crownos/templates/fastfetch-crown.svg",
+            output: "~/.config/fastfetch/crown.svg",
+            reload: ["sh", "-c", "magick -background none \"$HOME/.config/fastfetch/crown.svg\" \"$HOME/.config/fastfetch/crown.png\""],
+        ),
+        (
+            name: "fastfetch",
+            template: "/usr/share/crownos/templates/fastfetch.jsonc",
+            output: "~/.config/fastfetch/crownos.jsonc",
+        ),
+    ],
+)

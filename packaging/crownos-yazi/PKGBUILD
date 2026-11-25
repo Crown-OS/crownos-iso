@@ -1,5 +1,5 @@
 # shellcheck shell=bash disable=SC2034,SC2154
-# The Yazi plugins pinned in config/yazi/package.toml, fetched at build time
+# The Yazi plugins pinned in dotfiles/etc/skel/.config/yazi/package.toml, fetched at build time
 # into /etc/skel so a new user's Yazi starts with nothing to download.
 # scripts/build.sh unpacks the same files into the live user's home. The
 # plugins stay byte-identical to their pinned hashes so `ya pkg upgrade` works.
@@ -16,7 +16,7 @@ depends=(yazi git fzf ripgrep bat lazygit trash-cli rsync imagemagick 7zip gvfs 
 makedepends=(yazi git)
 options=(!debug !strip)
 
-_lockfile=$startdir/../../config/yazi/package.toml
+_lockfile=$startdir/../../dotfiles/etc/skel/.config/yazi/package.toml
 
 build() {
     install -Dm644 -- "$_lockfile" "$srcdir/config/package.toml"

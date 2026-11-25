@@ -1,6 +1,7 @@
 # shellcheck shell=bash disable=SC2034,SC2154
 # The CrownOS system defaults every install carries: the services the desktop
-# needs, the skel configs from config/, the CrownOS GTK and icon themes and
+# needs, the distro defaults from defaults/, the dotfiles from dotfiles/, the
+# CrownOS GTK themes from themes/ and the icon theme and
 # wallpapers, the launcher that opens the desktop when a user signs in on tty1,
 # the drive automounter's user unit and polkit rule, the units of crownos-updated
 # and its notifier, and the boot recovery files from packaging/boot/. The
@@ -22,45 +23,98 @@ install=crownos-base.install
 options=(!debug !strip)
 replaces=(crownos-desktop)
 conflicts=(crownos-desktop)
-mapfile -t depends < <(grep -Ev '^[[:space:]]*(#|$)' "$startdir/../desktop.depends")
-depends+=(snapper snap-pac refind)
+mapfile -t depends < <(grep -Ev '^[[:space:]]*(#|$)' "$startdir/../../packages/desktop.list")
 
-_config=$startdir/../../config
+_defaults=$startdir/../../defaults
+_dotfiles=$startdir/../../dotfiles
+_themes=$startdir/../../themes
 _boot=$startdir/../boot
 [[ -e $_boot/snapper/root ]] && backup=(etc/snapper/configs/root)
 
+# dotfiles/ holds the files of other programs at the paths they install to.
+# A tool that reads a system file (etc/xdg, usr/share) gets it there, so it
+# follows updates. etc/skel holds what a tool reads only from the home: the
+# Yazi, Neovim and browser files, and the Kitty home template, which includes
+# the system file and shows the defaults commented out.
 package() {
-    install -d "$pkgdir/usr/share/themes" "$pkgdir/usr/share/icons" "$pkgdir/etc/skel/.config"
-    cp -r --no-preserve=ownership -- "$_config/." "$pkgdir/etc/skel/.config/"
-    cp -r --no-preserve=ownership -- "$_config/gtk/." "$pkgdir/usr/share/themes/"
-    "${CROWNOS_ICON_THEME:?}/install.sh" --dest "$pkgdir/usr/share/icons"
-    install -Dm644 -t "$pkgdir/usr/share/backgrounds/crownos" "$startdir"/backgrounds/*
-    install -Dm644 -t "$pkgdir/usr/share/glib-2.0/schemas" "$startdir/90_crownos-theme.gschema.override"
-    install -Dm644 -t "$pkgdir/usr/share/applications" "$startdir"/*.desktop
-    install -Dm644 -t "$pkgdir/usr/share/libalpm/hooks" "$startdir"/*.hook
+    _package_defaults
+    cp -r --no-preserve=ownership -- "$_dotfiles/." "$pkgdir/"
+    _package_theme
+    _package_session
+    install -Dm644 -t "$pkgdir/usr/share/applications" "$startdir"/applications/*.desktop
+    _package_appstore
+    _package_process_monitor
+    _package_windows_apps
+    _package_memory
     _package_automount
     _package_updates
     _package_brightness
     _package_remote_desktop
     _package_ptrace_scope
-    install -Dm644 -t "$pkgdir/usr/share/polkit-1/actions" "$startdir"/*.policy "$startdir/windows-apps/org.crownos.windows-apps.policy" "$startdir/memory/org.crownos.memory.policy"
-    install -Dm644 -t "$pkgdir/usr/share/dbus-1/system.d" "$startdir/process-monitor/org.crownos.ProcessMonitor1.conf"
-    install -Dm644 -t "$pkgdir/usr/share/dbus-1/system-services" "$startdir/process-monitor/org.crownos.ProcessMonitor1.service"
-    install -Dm644 -t "$pkgdir/usr/lib/systemd/system" "$startdir/process-monitor/crownos-process-monitor-helper.service"
-    install -Dm644 -t "$pkgdir/usr/lib/systemd/system" "$startdir/windows-apps/crownos-windows-apps.service"
-    install -Dm755 -t "$pkgdir/usr/bin" "$startdir/crownos-desktop" "$startdir/windows-apps/crownos-windows-apps" "$startdir/memory/crownos-memory"
-    install -Dm644 -t "$pkgdir/usr/share/fish/vendor_conf.d" "$startdir/crownos-desktop.fish"
-    install -Dm644 -t "$pkgdir/etc/xdg/kitty" "$startdir/kitty.conf"
-    install -Dm644 -t "$pkgdir/usr/share/fontconfig/conf.avail" "$startdir/60-crownos-fonts.conf"
-    install -d "$pkgdir/etc/fonts/conf.d"
-    ln -s /usr/share/fontconfig/conf.avail/60-crownos-fonts.conf "$pkgdir/etc/fonts/conf.d/"
     _package_boot_recovery
 }
 
+_package_theme() {
+    install -d "$pkgdir/usr/share/themes" "$pkgdir/usr/share/icons"
+    cp -r --no-preserve=ownership -- "$_themes/gtk/." "$pkgdir/usr/share/themes/"
+    "${CROWNOS_ICON_THEME:?}/install.sh" --dest "$pkgdir/usr/share/icons"
+    install -Dm644 -t "$pkgdir/usr/share/backgrounds/crownos" "$startdir"/backgrounds/*
+    install -Dm644 -t "$pkgdir/usr/share/glib-2.0/schemas" "$startdir/theme/90_crownos-theme.gschema.override"
+    install -Dm644 -t "$pkgdir/usr/share/fontconfig/conf.avail" "$startdir/theme/60-crownos-fonts.conf"
+    install -d "$pkgdir/etc/fonts/conf.d"
+    ln -s /usr/share/fontconfig/conf.avail/60-crownos-fonts.conf "$pkgdir/etc/fonts/conf.d/"
+}
+
+# crownos-desktop opens the desktop when a user signs in on tty1, and first
+# refreshes the dotfiles that an earlier release copied into the home.
+_package_session() {
+    install -Dm755 -t "$pkgdir/usr/bin" "$startdir/session/crownos-desktop"
+    install -Dm644 -t "$pkgdir/usr/share/fish/vendor_conf.d" "$startdir/session/crownos-desktop.fish"
+    install -Dm755 -t "$pkgdir/usr/lib/crownos" "$startdir/session/refresh-shipped-dotfiles"
+}
+
+_package_appstore() {
+    install -Dm644 -t "$pkgdir/usr/share/polkit-1/actions" "$startdir/appstore/org.crownos.appstore.policy"
+    install -Dm644 -t "$pkgdir/usr/share/libalpm/hooks" "$startdir/appstore/crownos-snapd-socket.hook"
+}
+
+_package_process_monitor() {
+    install -Dm644 -t "$pkgdir/usr/share/polkit-1/actions" "$startdir/process-monitor/org.crownos.process-monitor.policy"
+    install -Dm644 -t "$pkgdir/usr/share/dbus-1/system.d" "$startdir/process-monitor/org.crownos.ProcessMonitor1.conf"
+    install -Dm644 -t "$pkgdir/usr/share/dbus-1/system-services" "$startdir/process-monitor/org.crownos.ProcessMonitor1.service"
+    install -Dm644 -t "$pkgdir/usr/lib/systemd/system" "$startdir/process-monitor/crownos-process-monitor-helper.service"
+}
+
+_package_windows_apps() {
+    install -Dm755 -t "$pkgdir/usr/bin" "$startdir/windows-apps/crownos-windows-apps"
+    install -Dm644 -t "$pkgdir/usr/share/polkit-1/actions" "$startdir/windows-apps/org.crownos.windows-apps.policy"
+    install -Dm644 -t "$pkgdir/usr/lib/systemd/system" "$startdir/windows-apps/crownos-windows-apps.service"
+}
+
+_package_memory() {
+    install -Dm755 -t "$pkgdir/usr/bin" "$startdir/memory/crownos-memory"
+    install -Dm644 -t "$pkgdir/usr/share/polkit-1/actions" "$startdir/memory/org.crownos.memory.policy"
+}
+
+# crownos-config reads /usr/share/crownos/defaults below each user's own
+# changes, so a system update changes every default that the user did not
+# change. defaults/history/ lets crownos-config reduce a home file that an
+# earlier release copied in full; refresh-shipped-dotfiles replaces the
+# unchanged dotfiles that an earlier release copied. defaults/live/ is for
+# the live image only, and scripts/build.sh puts it there.
+_package_defaults() {
+    install -Dm644 -t "$pkgdir/usr/share/crownos/defaults" "$_defaults"/*.ron
+    install -Dm644 -t "$pkgdir/usr/share/crownos/templates" "$_defaults"/templates/*
+    install -d "$pkgdir/usr/share/crownos/defaults-history"
+    cp -r --no-preserve=ownership -- "$_defaults/history/." "$pkgdir/usr/share/crownos/defaults-history/"
+}
+
 # crownos-updated and crownos-update-notify ship in crownos-update, which
-# packages only binaries (docs/publishing.md). The installer enables the daemon;
-# the notifier runs for every user through default.target.wants.
+# packages only binaries (docs/publishing.md). systemd/80-crownos.preset enables the
+# daemon and the other system units; the notifier runs for every user through
+# default.target.wants.
 _package_updates() {
+    install -Dm644 -t "$pkgdir/usr/lib/systemd/system-preset" "$startdir/systemd/80-crownos.preset"
     install -Dm644 -t "$pkgdir/usr/lib/systemd/system" "$startdir/update/crownos-updated.service"
     install -Dm644 -t "$pkgdir/usr/lib/systemd/user" "$startdir/update/crownos-update-notify.service"
     install -d "$pkgdir/usr/lib/systemd/user/default.target.wants"

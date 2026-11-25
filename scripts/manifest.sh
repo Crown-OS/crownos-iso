@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # Reads components.toml, the manifest of every CrownOS package.
 #
-#   manifest.sh names system|live|optional|all
+#   manifest.sh names system|live|installed|online|optional|all
 #   manifest.sh resolve REPO_DIR [--icon-theme CHECKOUT] [--siblings DIR]
 #   manifest.sh published CHANNEL REPO_DIR [PACKAGE...]
 #
-# names      the package names an install path takes: system is what every
-#            installed system has, live adds what only the live image runs,
-#            optional is opt-in, all is everything; it validates the manifest
+# names      the package names an install path takes: system is on the live
+#            image and in its offline mirror, live adds what only the live image
+#            runs, installed is what every installed system has (system plus the
+#            online packages), online is what installed systems download and the
+#            ISO does not carry, optional is opt-in, all is everything; it
+#            validates the manifest
 # resolve    fills REPO_DIR with every package: release assets are downloaded
 #            and checked against their sha256, source entries are built with
 #            makepkg at the ISO version; then indexes it unsigned. DIR holds the
@@ -41,8 +44,8 @@ validate() {
               then "\(.name): a placeholder entry (tag TODO or a zero sha256); pin a release with scripts/pin.sh"
             elif has("repo") and (.asset | sub("-[^-]+-[^-]+-[^-]+$"; "")) != .name
               then "\(.name): asset \(.asset) holds another package"
-            elif (.install // "system" | IN("system", "live", "optional") | not)
-              then "\(.name): install must be system, live or optional"
+            elif (.install // "system" | IN("system", "live", "installed", "optional") | not)
+              then "\(.name): install must be system, live, installed or optional"
             else empty end)')
     [[ -z $problems ]] || die "components.toml is invalid:"$'\n'"$problems"
 }
@@ -50,9 +53,11 @@ validate() {
 names() {
     validate
     local filter
-    case ${1:?names needs system, live, optional or all} in
+    case ${1:?names needs system, live, installed, online, optional or all} in
         system) filter='.install // "system" | . == "system"' ;;
         live) filter='.install // "system" | IN("system", "live")' ;;
+        installed) filter='.install // "system" | IN("system", "installed")' ;;
+        online) filter='.install == "installed"' ;;
         optional) filter='.install == "optional"' ;;
         all) filter='true' ;;
         *) die "unknown install set: $1" ;;
@@ -137,9 +142,10 @@ published() {
     local channel=${1:?published needs CHANNEL} repo_dir=${2:?published needs REPO_DIR}
     [[ $channel == @(testing|stable) ]] || die "the channel is testing or stable, not $channel"
     validate
-    local name versions=() version build_id restart releases all_names system_names
+    local name versions=() version build_id restart retired releases all_names system_names online_names
     mapfile -t all_names < <(names all)
-    mapfile -t system_names < <(names system)
+    mapfile -t system_names < <(names installed)
+    mapfile -t online_names < <(names online)
     for name in "${@:3}"; do
         [[ " ${all_names[*]} " == *" $name "* ]] || all_names+=("$name")
         [[ " ${system_names[*]} " == *" $name "* ]] || system_names+=("$name")
@@ -150,11 +156,14 @@ published() {
     version=$(release_field "$repo_dir" VERSION_ID)
     build_id=$(release_field "$repo_dir" BUILD_ID)
     restart=$(release_restart "$version" "$channel")
+    retired=$(release_retired "$version")
     releases=$(release_chain "$version" | jq -R . | jq -s .)
     jq -n --arg version "$version" --arg build_id "$build_id" --arg channel "$channel" --arg restart "$restart" \
-        --argjson releases "$releases" --argjson system "$(printf '%s\n' "${system_names[@]}" | jq -R . | jq -s .)" '
+        --argjson releases "$releases" --argjson retired "$retired" \
+        --argjson system "$(printf '%s\n' "${system_names[@]}" | jq -R . | jq -s .)" \
+        --argjson online "$(printf '%s\n' "${online_names[@]}" | jq -R 'select(length > 0)' | jq -s .)" '
         {version: $version, build_id: $build_id, channel: $channel, restart: $restart, notes: "notes.md",
-         releases: $releases, packages: $system,
+         releases: $releases, packages: $system, online: $online, retired: $retired,
          package: [$ARGS.positional as $pairs | range(0; $pairs | length; 2) | {name: $pairs[.], version: $pairs[. + 1]}]}' --args "${versions[@]}" |
         toml write --bare
 }

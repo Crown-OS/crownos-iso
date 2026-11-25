@@ -71,6 +71,17 @@ release_restart() {
     printf '%s\n' "$restart"
 }
 
+# The packages that releases/VERSION/release.toml retires, as a JSON array.
+# A testing build between two tags has no release.toml and retires nothing.
+release_retired() {
+    local version=$1 file=$root/releases/$1/release.toml retired
+    [[ -e $file ]] || { echo '[]'; return; }
+    retired=$(toml json "$file" | jq -c '.retired // []') || die "cannot read releases/$version/release.toml"
+    jq -e 'type == "array" and all(.[]; type == "string" and test("^[A-Za-z0-9][A-Za-z0-9@._+-]{0,127}$"))' \
+        <<<"$retired" >/dev/null || die "releases/$version/release.toml: retired is a list of package names, not $retired"
+    printf '%s\n' "$retired"
+}
+
 default_channel() {
     if git -C "$root" describe --tags --exact-match --match 'v[0-9]*' >/dev/null 2>&1; then
         echo stable

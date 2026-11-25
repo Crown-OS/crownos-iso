@@ -1,0 +1,10 @@
+# The base system that the live image runs and that the installer pacstraps
+# from the offline mirror, beside crownos-base.
+base
+efibootmgr
+linux-cachyos
+linux-firmware
+mkinitcpio
+nvim
+sudo
+yay

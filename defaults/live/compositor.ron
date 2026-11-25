@@ -1,0 +1,19 @@
+// The machine defaults of the live image: the whole desktop and the installer,
+// over the distro defaults in /usr/share/crownos/defaults/compositor.ron. The
+// installer installs from packages, so this file does not reach the new system.
+(
+    session_startup: [
+        "crownpaper",
+        "crownbar",
+        "crowndock",
+        "crownotify",
+        "crownos-clipboard",
+        "crownos-polkit-agent",
+        "crownos-theme-engine watch",
+        "crownos-install",
+    ],
+    window_rules: [
+        (app_id: "^crownos-installer$", fullscreen: true),
+        (app_id: "^steam_app_", tearing: true, vrr: true),
+    ],
+)

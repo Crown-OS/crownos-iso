@@ -11,9 +11,10 @@
 #   --squashfs-level  the zstd level of the live image, 1 to 22 [default: 19]. A lower
 #                 level builds much faster and makes the ISO a little larger
 #
-# The live image installs every system and live package of the manifest. The
-# offline mirror the installer pacstraps from holds profile/install.packages
-# plus the manifest's system packages, with all dependencies, and the image
+# The live image installs every system and live package of the manifest and
+# the live names of packages/. The offline mirror the installer pacstraps from
+# holds the mirror names of packages/ plus the manifest's system packages,
+# with all dependencies, and the image
 # carries the published-shape manifest and the repository key so the installer
 # knows what to install and always adds the [crownos] repository.
 
@@ -32,10 +33,11 @@ staged_mirror=$profile/airootfs/var/cache/crownos/mirror
 staged_installer=$profile/airootfs/usr/bin/crownos-installer
 staged_key=$profile/airootfs/usr/share/crownos/crownos-archive-keyring.asc
 staged_manifest=$profile/airootfs/usr/share/crownos/manifest.toml
-staged_root_config=$profile/airootfs/root/.config
-staged_live_config=$profile/airootfs/home/crownos-live/.config
+staged_install_base=$profile/airootfs/usr/share/crownos/install-base.packages
 staged_live_home=$profile/airootfs/home/crownos-live
+skel_packages=(crownos-base crownos-neovim crownos-yazi)
 staged_pacman_conf=$profile/airootfs/etc/pacman.conf
+staged_live_defaults=$profile/airootfs/etc/crownos/defaults
 keyring=$root/packaging/crownos-keyring/crownos.gpg
 package_cache=$target/pkg-cache
 
@@ -104,15 +106,17 @@ write_pacman_conf() {
 
 stage_install_list() {
     {
-        grep -Ev '^[[:space:]]*(#|$)' "$profile/install.packages"
+        "$root/scripts/packages.sh" names mirror
         "$root/scripts/manifest.sh" names system
         ((${#local_system_packages[@]} == 0)) || printf '%s\n' "${local_system_packages[@]}"
     } | sort -u >"$target/install.packages"
 }
 
+# mkarchiso reads the profile's packages.x86_64; the components come with -p.
 stage_live_list() {
+    "$root/scripts/packages.sh" names live >"$profile/packages.x86_64"
     {
-        grep -Ev '^[[:space:]]*(#|$)' "$profile/packages.x86_64"
+        cat -- "$profile/packages.x86_64"
         printf '%s\n' "${packages[@]}"
     } | sort -u >"$target/live.packages"
 }
@@ -120,37 +124,27 @@ stage_live_list() {
 stage_manifest() {
     mkdir -p -- "${staged_manifest%/*}"
     "$root/scripts/manifest.sh" published "$(default_channel)" "$repo_dir" "${local_system_packages[@]}" >"$staged_manifest"
+    "$root/scripts/packages.sh" names install-base >"$staged_install_base"
 }
 
-stage_root_config() {
-    rm -rf -- "$staged_root_config"
-    mkdir -p -- "$staged_root_config"
-    cp -r -- "$root/config/." "$staged_root_config/"
+# The prebuilt live home never copies from /etc/skel, so the skel files of the
+# packages that have them are unpacked into it. The CrownOS defaults come from
+# /usr/share/crownos/defaults and /etc/crownos/defaults, not from the home.
+stage_live_home() {
+    local package_name packages
+    rm -rf -- "$staged_live_home/.config" "$staged_live_home/.local"
+    mkdir -p -- "$staged_live_home/.config/crownos"
+    for package_name in "${skel_packages[@]}"; do
+        packages=("$repo_dir/$package_name"-[0-9]*.pkg.tar.zst)
+        ((${#packages[@]} == 1)) || die "$repo_dir needs exactly one $package_name package"
+        bsdtar -xf "${packages[0]}" -C "$staged_live_home" --strip-components 2 etc/skel
+    done
 }
 
-stage_live_config() {
-    rm -rf -- "$staged_live_config"
-    mkdir -p -- "$staged_live_config/crownos"
-    cp -r -- "$root/config/." "$staged_live_config/"
-    cp -- "$profile/airootfs/usr/share/crownos/live/compositor.ron" \
-        "$staged_live_config/crownos/compositor.ron"
-}
-
-# crownos-neovim puts Neovim's plugins and parsers in /etc/skel, which the
-# prebuilt live home never copies from, so its files are unpacked there too.
-stage_live_nvim_data() {
-    local packages=("$repo_dir"/crownos-neovim-*.pkg.tar.zst)
-    ((${#packages[@]} == 1)) || die "$repo_dir needs exactly one crownos-neovim package"
-    rm -rf -- "$staged_live_home/.local"
-    bsdtar -xf "${packages[0]}" -C "$staged_live_home" --strip-components 2 etc/skel/.local
-}
-
-# crownos-yazi puts Yazi's plugins in /etc/skel, which the prebuilt live home
-# never copies from, so its plugins are unpacked into the live config too.
-stage_live_yazi_plugins() {
-    local packages=("$repo_dir"/crownos-yazi-*.pkg.tar.zst)
-    ((${#packages[@]} == 1)) || die "$repo_dir needs exactly one crownos-yazi package"
-    bsdtar -xf "${packages[0]}" -C "$staged_live_config" --strip-components 3 etc/skel/.config/yazi/plugins
+# The live image's own defaults, over the distro defaults of crownos-base.
+stage_live_defaults() {
+    rm -rf -- "$staged_live_defaults"
+    install -Dm644 -t "$staged_live_defaults" "$root"/defaults/live/*.ron
 }
 
 stage_pacman_conf() {
@@ -198,10 +192,8 @@ write_pacman_conf
 stage_install_list
 stage_live_list
 stage_manifest
-stage_root_config
-stage_live_config
-stage_live_nvim_data
-stage_live_yazi_plugins
+stage_live_home
+stage_live_defaults
 stage_pacman_conf
 stage_repo_key
 stage_mirror
