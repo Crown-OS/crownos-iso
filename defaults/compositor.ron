@@ -4,6 +4,10 @@
 (
     session_startup: [
         "crownpaper",
+        "crownbar",
+        "crowndock",
+        "crownotify",
+        "crownos-clipboard",
         "crownos-polkit-agent",
         "crownos-theme-engine watch",
     ],
