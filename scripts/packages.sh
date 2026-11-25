@@ -2,8 +2,10 @@
 # Reads the third-party package lists in packages/. Each name is in one list,
 # and the list says where the package goes (see the header of each file).
 #
-#   packages.sh names live|mirror   the names the live image or the offline mirror needs,
-#                                   besides the packages of components.toml
+#   packages.sh names live|mirror|install-base
+#                                   the names the live image or the offline mirror needs,
+#                                   besides the packages of components.toml; install-base
+#                                   is what crownos-installer pacstraps besides them
 #   packages.sh check               refuses a name in two lists, or a CrownOS package
 #                                   that components.toml already names
 
@@ -36,9 +38,10 @@ case ${1:-} in
         case ${2:-} in
             live) names_in system live ;;
             mirror) names_in system mirror drivers ;;
-            *) die "usage: packages.sh names live|mirror" ;;
+            install-base) names_in system mirror ;;
+            *) die "usage: packages.sh names live|mirror|install-base" ;;
         esac
         ;;
     check) check ;;
-    *) die "usage: packages.sh names live|mirror | check" ;;
+    *) die "usage: packages.sh names live|mirror|install-base | check" ;;
 esac

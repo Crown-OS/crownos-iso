@@ -11,4 +11,5 @@
 /profile/airootfs/etc/crownos/
 /profile/packages.x86_64
 /profile/airootfs/usr/share/crownos/manifest.toml
+/profile/airootfs/usr/share/crownos/install-base.packages
 /download-worker/.wrangler/

@@ -33,6 +33,7 @@ staged_mirror=$profile/airootfs/var/cache/crownos/mirror
 staged_installer=$profile/airootfs/usr/bin/crownos-installer
 staged_key=$profile/airootfs/usr/share/crownos/crownos-archive-keyring.asc
 staged_manifest=$profile/airootfs/usr/share/crownos/manifest.toml
+staged_install_base=$profile/airootfs/usr/share/crownos/install-base.packages
 staged_live_home=$profile/airootfs/home/crownos-live
 skel_packages=(crownos-base crownos-neovim crownos-yazi)
 staged_pacman_conf=$profile/airootfs/etc/pacman.conf
@@ -123,6 +124,7 @@ stage_live_list() {
 stage_manifest() {
     mkdir -p -- "${staged_manifest%/*}"
     "$root/scripts/manifest.sh" published "$(default_channel)" "$repo_dir" "${local_system_packages[@]}" >"$staged_manifest"
+    "$root/scripts/packages.sh" names install-base >"$staged_install_base"
 }
 
 # The prebuilt live home never copies from /etc/skel, so the skel files of the

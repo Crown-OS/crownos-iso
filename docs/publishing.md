@@ -54,7 +54,8 @@ channel = "stable"                           # testing builds: "testing"
 restart = "soft-reboot"                      # session | soft-reboot | reboot
 notes = "notes.md"                           # the file beside the manifest
 releases = ["0.1.0", "0.1.2", ..., "0.4.2"]  # every v* tag up to version
-packages = ["crownpositor", "crownbar", ...] # what to sync: system packages only
+packages = ["crownpositor", "crownbar", ...] # what to sync: system and installed packages
+online = ["crownos-visual-context-engine"]   # the installed packages that the ISO does not carry
 
 [[package]]
 name = "crownbar"
@@ -153,10 +154,15 @@ source = "packaging/crownos-base"
 - `siblings` is copied from the release's `siblings.lock`: the sibling commits the
   package was built against. Absent means unknown; `{}` means it has none.
   `gen-pkgbuilds.sh` skips packages whose siblings are unknown.
-- `install = "system" | "live" | "optional"` (default `system`): `system` packages
-  are in every installed system and in the published `packages` list, `live` only
-  in the live image (`crownos-installer`), `optional` only in the repository
-  (`crownos-source`).
+- `install = "system" | "live" | "installed" | "optional"` (default `system`):
+  `system` packages are in the live image, its offline mirror, every installed
+  system and the published `packages` list; `live` only in the live image
+  (`crownos-installer`); `installed` in every installed system and in `packages`
+  and `online`, but not in the ISO: the installer downloads them after the base
+  system, `crownos-setup` installs the ones that it could not download when the
+  network comes up, and updates install them like any other package; `optional`
+  only in the repository (`crownos-source`, and the AI runtimes that the
+  installer picks for the hardware).
 - `pkgbuild = "<path>"`: the repository's own PKGBUILD that `gen-pkgbuilds.sh`
   uses instead of the generic Rust template (with every file and subdirectory
   beside it, such as `snapd.install` or `systemd/`). The PKGBUILD can build its
@@ -175,7 +181,7 @@ comments are not kept.
 
 | Script | Does |
 |---|---|
-| `manifest.sh names system\|live\|optional\|all` | lists and validates |
+| `manifest.sh names system\|live\|installed\|online\|optional\|all` | lists and validates |
 | `manifest.sh resolve DIR [--icon-theme CHECKOUT] [--siblings DIR]` | downloads, verifies and builds every package into DIR, indexed unsigned; the siblings directory holds the `crownos-plugins` and `crownos-config` checkouts that `crownos-agent-skills` reads (CI checks them out under `siblings/`) |
 | `manifest.sh published CHANNEL DIR [PACKAGE...]` | prints the published manifest for DIR; each PACKAGE is an extra system package in DIR |
 | `pin.sh` | the only writer of `components.toml` |
