@@ -88,7 +88,7 @@ layered_config_version=0.2.0
 pinned_crownos_config_version() {
     local repo=$1 tag=$2
     gh api -H 'Accept: application/vnd.github.raw' "repos/$repo/contents/Cargo.lock?ref=$tag" 2>/dev/null |
-        awk '/^name = "crownos-config"$/ { found = 1; next } found && /^version = / { gsub(/"/, "", $3); print $3; exit }'
+        awk '/^name = "crownos-config"$/ { found = 1; next } found && !printed && /^version = / { gsub(/"/, "", $3); print $3; printed = 1 }'
 }
 
 check_layered_config_readers() {
