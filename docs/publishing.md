@@ -248,7 +248,7 @@ releases ship their own data, `crownos-base` keeps:
 | `/usr/lib/tmpfiles.d/crownos.conf` (`/run/crownos`, 0755) | crownos-base | crownos-update |
 | `/usr/share/applications/crownos-settings-updates.desktop` | crownos-base | crownos-settings |
 
-The crownos-appstore files in `packaging/crownos-base/` are byte-identical to
+The crownos-appstore files in `packaging/crownos-base/appstore/` and `applications/` are byte-identical to
 the files under `crownos-appstore/data/`. The pull request that pins a release
 that carries one of these files must drop it from `packaging/crownos-base/` in
 the same change, or pacman reports a file conflict. The binaries need no such

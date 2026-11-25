@@ -55,7 +55,7 @@ not remove the packages. To remove them on an update from such a release, use
 
 ## New system units
 
-`packaging/crownos-base/80-crownos.preset` is the list of the system units that
+`packaging/crownos-base/systemd/80-crownos.preset` is the list of the system units that
 CrownOS enables. To enable a new system daemon, add an `enable` line for its
 unit there. Do not add it to the installer. The installer runs `systemctl
 preset` for the units of the file. After the update, `crownos-updated` runs

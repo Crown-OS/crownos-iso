@@ -66,7 +66,7 @@ reset-vm:
 # distro defaults against the crownos-config schema
 check:
     for script in scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/*; do bash -n "$script" || exit 1; done
-    shellcheck -x scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/* packaging/crownos-base/crownos-desktop packaging/crownos-base/refresh-shipped-dotfiles
+    shellcheck -x scripts/*.sh packaging/*/PKGBUILD packaging/boot/bin/* packaging/crownos-base/session/crownos-desktop packaging/crownos-base/session/refresh-shipped-dotfiles
     cargo run -q --locked --manifest-path "${CROWNOS_SIBLINGS:-..}/crownos-config/Cargo.toml" -p xtask -- check-defaults defaults
     cargo run -q --locked --manifest-path "${CROWNOS_SIBLINGS:-..}/crownos-config/Cargo.toml" -p xtask -- check-defaults defaults/live
     for script in releases/*/post-update.sh; do if [ -e "$script" ]; then bash -n "$script" && shellcheck -s bash "$script" || exit 1; fi; done
