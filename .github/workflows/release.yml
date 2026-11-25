@@ -62,7 +62,7 @@ env:
   GPGKEY: packages@crownos.org
   GH_TOKEN: ${{ secrets.CROWNOS_SOURCES_TOKEN || github.token }}
   # Everything the scripts read, kept when a step runs them as the builder user.
-  BUILDER_ENV: GH_TOKEN,GPGKEY,GITHUB_REPOSITORY,GITHUB_REF_TYPE,GITHUB_REF_NAME
+  BUILDER_ENV: GH_TOKEN,GPGKEY,GITHUB_REPOSITORY,GITHUB_REF_TYPE,GITHUB_REF_NAME,CROWNOS_SIBLINGS
 
 jobs:
   check:
