@@ -11,7 +11,8 @@ panel, the bar, the compositor and every other app read the same files through `
 and watch them, so a saved edit applies at once. Editing the file is the settings panel.
 
 The user's file sets only the keys that the user changed. It lists every other key as a `//`
-comment with its current default, so a comment line is not a value. Each key that the file does
+comment with its current default, so a comment line is not a value. A file that an earlier
+release copied into the home can still set every key; then each set key wins over the layers. Each key that the file does
 not set comes from the layers below it, and the highest layer that has the key wins:
 
 1. `~/.config/crownos/<section>.ron`: the user's changes. Edit only this file.
