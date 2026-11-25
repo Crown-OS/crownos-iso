@@ -1,0 +1,13 @@
+# Only on the live image: the installer's tools and the live boot.
+amd-ucode
+arch-install-scripts
+cage
+gptfdisk
+gsettings-desktop-schemas
+intel-ucode
+mkinitcpio-archiso
+parted
+plymouth
+ttf-dejavu
+vulkan-swrast
+xorg-xwayland

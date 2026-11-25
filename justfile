@@ -72,6 +72,7 @@ check:
     for script in releases/*/post-update.sh; do if [ -e "$script" ]; then bash -n "$script" && shellcheck -s bash "$script" || exit 1; fi; done
     python3 -I scripts/toml.py json components.toml | python3 -I scripts/toml.py write | diff - components.toml
     scripts/manifest.sh names all >/dev/null
+    scripts/packages.sh check
     test "$(vercmp 0.1.11.r7.gf66daf5 0.1.11)" = 1
     test "$(vercmp 0.1.11.r7.gf66daf5 0.1.12)" = -1
     test "$(vercmp 0.1.11.r10.g0000000 0.1.11.r7.gf66daf5)" = 1

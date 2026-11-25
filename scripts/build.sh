@@ -11,9 +11,10 @@
 #   --squashfs-level  the zstd level of the live image, 1 to 22 [default: 19]. A lower
 #                 level builds much faster and makes the ISO a little larger
 #
-# The live image installs every system and live package of the manifest. The
-# offline mirror the installer pacstraps from holds profile/install.packages
-# plus the manifest's system packages, with all dependencies, and the image
+# The live image installs every system and live package of the manifest and
+# the live names of packages/. The offline mirror the installer pacstraps from
+# holds the mirror names of packages/ plus the manifest's system packages,
+# with all dependencies, and the image
 # carries the published-shape manifest and the repository key so the installer
 # knows what to install and always adds the [crownos] repository.
 
@@ -104,15 +105,17 @@ write_pacman_conf() {
 
 stage_install_list() {
     {
-        grep -Ev '^[[:space:]]*(#|$)' "$profile/install.packages"
+        "$root/scripts/packages.sh" names mirror
         "$root/scripts/manifest.sh" names system
         ((${#local_system_packages[@]} == 0)) || printf '%s\n' "${local_system_packages[@]}"
     } | sort -u >"$target/install.packages"
 }
 
+# mkarchiso reads the profile's packages.x86_64; the components come with -p.
 stage_live_list() {
+    "$root/scripts/packages.sh" names live >"$profile/packages.x86_64"
     {
-        grep -Ev '^[[:space:]]*(#|$)' "$profile/packages.x86_64"
+        cat -- "$profile/packages.x86_64"
         printf '%s\n' "${packages[@]}"
     } | sort -u >"$target/live.packages"
 }

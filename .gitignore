@@ -9,5 +9,6 @@
 /profile/airootfs/home/crownos-live/.local/
 /profile/airootfs/etc/pacman.conf
 /profile/airootfs/etc/crownos/
+/profile/packages.x86_64
 /profile/airootfs/usr/share/crownos/manifest.toml
 /download-worker/.wrangler/

@@ -23,8 +23,7 @@ install=crownos-base.install
 options=(!debug !strip)
 replaces=(crownos-desktop)
 conflicts=(crownos-desktop)
-mapfile -t depends < <(grep -Ev '^[[:space:]]*(#|$)' "$startdir/../desktop.depends")
-depends+=(snapper snap-pac refind)
+mapfile -t depends < <(grep -Ev '^[[:space:]]*(#|$)' "$startdir/../../packages/desktop.list")
 
 _defaults=$startdir/../../defaults
 _dotfiles=$startdir/../../dotfiles

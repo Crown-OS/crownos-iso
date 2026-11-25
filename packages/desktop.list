@@ -1,4 +1,5 @@
-# System services and drivers the desktop needs beside its own components.
+# The desktop on the live image and on every installed system: crownos-base
+# depends on each of these, so a system update also installs a new one.
 7zip
 at-spi2-core
 bat
@@ -36,7 +37,10 @@ pipewire-pulse
 polkit
 poppler
 power-profiles-daemon
+refind
 ripgrep
+snap-pac
+snapper
 starship
 trash-cli
 ttf-firacode-nerd

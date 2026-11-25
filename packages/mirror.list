@@ -1,0 +1,10 @@
+# Only in the offline mirror that crownos-installer pacstraps from: the
+# repository keys and mirror lists and the base tools of an installed system.
+# build.sh adds the system packages of components.toml.
+archlinux-keyring
+cachyos-keyring
+cachyos-mirrorlist
+cachyos-v3-mirrorlist
+cachyos-v4-mirrorlist
+nano
+zram-generator
