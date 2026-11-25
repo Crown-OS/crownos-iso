@@ -24,6 +24,20 @@ check_release_directory() {
     [[ ! -e $post_update ]] || bash -n -- "$post_update" || die "releases/$version/post-update.sh has a syntax error"
     check_retired "$version"
     check_restart_starts_changed_units "$version"
+    check_reduction_follows_a_layered_release "$version"
+}
+
+# A home is not rolled back with the system. defaults/history/reduce-home-files
+# lets crownos-config and refresh-shipped-dotfiles change the files that earlier
+# releases copied into homes, which only a release with the default layers can
+# read. So the release before the one that ships it must have the layers.
+check_reduction_follows_a_layered_release() {
+    local version=$1 previous
+    [[ -e $root/defaults/history/reduce-home-files ]] || return 0
+    previous=$(previous_release "$version")
+    if [[ -z $previous ]] || ! git -C "$root" cat-file -e "v$previous:defaults/history" 2>/dev/null; then
+        die "defaults/history/reduce-home-files ships in $version, but v${previous:-<none>} has no default layers; a rollback to it would read reduced home files. Ship it from the release after the first one with layers (releases/README.md)"
+    fi
 }
 
 check_retired() {

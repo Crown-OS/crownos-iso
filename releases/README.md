@@ -70,6 +70,24 @@ units are enabled at the update after it.
 New user units start through `default.target.wants` links in `crownos-base`.
 Use `soft-reboot` or `reboot` for a release that adds a unit.
 
+## Home files and rollback
+
+A rollback restores the system, not the homes. The first release with the
+default layers (`/usr/share/crownos/defaults`) therefore changes no file in a
+home: it reads the full files that earlier releases copied into
+`~/.config/crownos` as they are, and `refresh-shipped-dotfiles` does nothing.
+A rollback to a release without the layers still finds every file as it was.
+
+In the release after it, add the empty file
+`defaults/history/reduce-home-files`. crownos-base installs it to
+`/usr/share/crownos/defaults-history/`. Then crownos-config reduces each full
+file to the keys that the user changed (and keeps the old file as
+`<section>.ron.before-layers`), and `refresh-shipped-dotfiles` replaces the
+unchanged dotfile copies. A rollback from that release goes to a release that
+has the layers, so the reduced files still give the same values.
+`scripts/gate.sh` refuses the file in a release whose previous release has no
+default layers.
+
 ## notes.md
 
 `scripts/notes.sh` puts this file first. Then it adds the release notes of

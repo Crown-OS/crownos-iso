@@ -4,15 +4,18 @@
 # same as a version that CrownOS shipped is replaced by the current skel
 # version, or removed when skel has none, so the system file applies. A file
 # that the user changed stays. crownos-desktop runs it before the desktop
-# starts, one time for each version of the list.
+# starts, one time for each version of the list. A release that does not ship
+# reduce-home-files changes no home file, so a rollback to a release without
+# the system files still finds them.
 set -eu
 
-list=/usr/share/crownos/defaults-history/dotfiles.sha256
+history=/usr/share/crownos/defaults-history
+list=$history/dotfiles.sha256
 skel=/etc/skel/.config
 config=${XDG_CONFIG_HOME:-$HOME/.config}
 marker=${XDG_STATE_HOME:-$HOME/.local/state}/crownos/shipped-dotfiles-refreshed
 
-[ -r "$list" ] || exit 0
+[ -e "$history/reduce-home-files" ] && [ -r "$list" ] || exit 0
 list_hash=$(sha256sum <"$list")
 [ -r "$marker" ] && [ "$(cat -- "$marker")" = "$list_hash" ] && exit 0
 
