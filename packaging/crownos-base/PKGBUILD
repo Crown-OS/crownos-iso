@@ -50,9 +50,9 @@ package() {
     install -Dm644 -t "$pkgdir/usr/lib/systemd/system" "$startdir/windows-apps/crownos-windows-apps.service"
     install -Dm755 -t "$pkgdir/usr/bin" "$startdir/crownos-desktop" "$startdir/windows-apps/crownos-windows-apps" "$startdir/memory/crownos-memory"
     install -Dm644 -t "$pkgdir/usr/share/fish/vendor_conf.d" "$startdir/crownos-desktop.fish"
-    install -Dm644 -t "$pkgdir/usr/share/fontconfig/conf.avail" "$startdir/60-crownos-inter.conf"
+    install -Dm644 -t "$pkgdir/usr/share/fontconfig/conf.avail" "$startdir/60-crownos-fonts.conf"
     install -d "$pkgdir/etc/fonts/conf.d"
-    ln -s /usr/share/fontconfig/conf.avail/60-crownos-inter.conf "$pkgdir/etc/fonts/conf.d/"
+    ln -s /usr/share/fontconfig/conf.avail/60-crownos-fonts.conf "$pkgdir/etc/fonts/conf.d/"
     _package_boot_recovery
 }
 
