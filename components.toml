@@ -4,9 +4,9 @@
 [[package]]
 name = "crownos-installer"
 repo = "Crown-OS/crownos-installer"
-tag = "v0.4.0"
-asset = "crownos-installer-0.4.0-1-x86_64.pkg.tar.zst"
-sha256 = "2c3724cb79a425db6b706fa2b01977c19d9b5b3dcb37b5ba998bf1ed4b49a7c4"
+tag = "v0.5.0"
+asset = "crownos-installer-0.5.0-1-x86_64.pkg.tar.zst"
+sha256 = "1b130c72891d0c22093146189efe3ca9ed6e92d2bf0f97aaf4a9044e0cf190a0"
 install = "live"
 
 [[package]]
@@ -198,9 +198,9 @@ sha256 = "358427a0f8bdc131cbe5ba09e3035adc9eb65d16126c9c73040ccd467016ff76"
 [[package]]
 name = "crownos-setup"
 repo = "Crown-OS/crownos-installer"
-tag = "v0.4.0"
-asset = "crownos-setup-0.4.0-1-x86_64.pkg.tar.zst"
-sha256 = "bf3e9b70ee7dbbe532ece1400facc08a9457aaa5095cb0d042301ec74b233ae7"
+tag = "v0.5.0"
+asset = "crownos-setup-0.5.0-1-x86_64.pkg.tar.zst"
+sha256 = "0d526033c044e5111e1ec95dddf6c7822a0b7db0fd18d44a3f619f4344f2471b"
 
 [[package]]
 name = "crownos-remote-desktop"
