@@ -222,7 +222,7 @@ crownos-iso (`github.token` in CI).
 
 | Package | Holds |
 |---|---|
-| `crownos-base` | what the old `crownos-desktop` meta installed except the components: skel configs, GTK and icon themes, wallpapers, `.desktop` files, polkit policies, D-Bus services, the tty launcher, the windows-apps and memory helpers, fontconfig, the `crownos-updated` and `crownos-update-notify` units and `/usr/lib/tmpfiles.d/crownos.conf` and the `kernel.yama.ptrace_scope = 1` sysctl drop-in; depends on `packages/desktop.list`; ships `packaging/boot/` (pacman hooks, initcpio hooks, helpers, systemd units, `/etc/snapper/configs/root`) |
+| `crownos-base` | what the old `crownos-desktop` meta installed except the components: the CrownOS defaults from `defaults/` in `/usr/share/crownos/defaults`, the files of `dotfiles/` at their paths, GTK themes from `themes/gtk` and the icon theme, wallpapers, `.desktop` files, polkit policies, D-Bus services, the tty launcher, the windows-apps and memory helpers, fontconfig, the `crownos-updated` and `crownos-update-notify` units and `/usr/lib/tmpfiles.d/crownos.conf` and the `kernel.yama.ptrace_scope = 1` sysctl drop-in; depends on `packages/desktop.list`; ships `packaging/boot/` (pacman hooks, initcpio hooks, helpers, systemd units, `/etc/snapper/configs/root`) |
 | `crownos-release` | `/usr/lib/crownos/os-release`, a pacman hook copying it over `/usr/lib/os-release`, and `/usr/lib/crownos/post-update` when the release has a `post-update.sh` |
 | `crownos-keyring` | the repository key for `pacman-key --populate crownos` |
 | `crownos-source` | opt-in: `-march=native` and paru's `[crownos-src]` |
